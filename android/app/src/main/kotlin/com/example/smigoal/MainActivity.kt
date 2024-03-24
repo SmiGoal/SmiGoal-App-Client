@@ -3,15 +3,12 @@ package com.example.smigoal
 import android.content.Intent
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
-import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.provider.Telephony
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat.startForegroundService
 import com.example.smigoal.db.MessageDB
 import com.example.smigoal.functions.SMSForegroundService
 import com.example.smigoal.functions.SMSReceiver

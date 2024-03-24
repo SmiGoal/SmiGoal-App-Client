@@ -14,7 +14,7 @@ class Settings extends StatelessWidget {
                 color: Colors.blue,
               ),
               child: Text(
-                'Drawer Header',
+                '설정',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 24,

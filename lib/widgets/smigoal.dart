@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smigoal/widgets/chart.dart';
 
 import 'package:smigoal/widgets/settings.dart';
 
@@ -46,6 +47,11 @@ class _SmiGoalState extends State<SmiGoal> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+
+            CustomPaint(
+              size: Size(200, 200),
+              painter: PieChartPainter()
+            ),
             Text(message),
             Text(sender),
             Text(result),
