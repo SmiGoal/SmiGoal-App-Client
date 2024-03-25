@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:smigoal/widgets/chart.dart';
 
 import 'package:smigoal/widgets/settings.dart';
@@ -17,11 +18,12 @@ class _SmiGoalState extends State<SmiGoal> {
   String sender = "KU";
   String result = "Unknown";
   DateTime timestamp = DateTime.now();
+  Chart chart = Chart();
 
   @override
   void initState() {
     super.initState();
-    final resultHandler = ResultHandler(_getMessage);
+    final resultHandler = ResultHandler(_getMessage, _getDbDatas);
     resultHandler.init();
   }
 
@@ -32,6 +34,13 @@ class _SmiGoalState extends State<SmiGoal> {
       this.sender = sender;
       this.result = result;
       this.timestamp = DateTime.fromMillisecondsSinceEpoch(timestamp);
+    });
+  }
+
+  void _getDbDatas(List dbDatas, int ham, int spam){
+    setState(() {
+      chart.ham = ham;
+      chart.spam = spam;
     });
   }
 
@@ -47,11 +56,17 @@ class _SmiGoalState extends State<SmiGoal> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-
-            CustomPaint(
-              size: Size(200, 200),
-              painter: PieChartPainter()
+            const SizedBox(height: 30),
+            Text(
+              '안전을 지키는 중입니다!',
+              style: GoogleFonts.lato(
+                color: Colors.black,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
             ),
+            const SizedBox(height: 30),
+            chart,
             Text(message),
             Text(sender),
             Text(result),

@@ -8,7 +8,7 @@ import androidx.room.Query
 @Dao
 interface MessageDAO {
     @Query("SELECT * FROM MESSAGE_TABLE")
-    fun getMessage(): List<MessageEntity>
+    fun getMessage(): List<MessageEntity>?
 
     @Query("DELETE FROM MESSAGE_TABLE")
     fun deleteAllMessages()

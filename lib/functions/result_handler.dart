@@ -4,8 +4,9 @@ import 'dart:ffi';
 import 'package:flutter/services.dart';
 
 class ResultHandler {
-  ResultHandler(this.onReceive);
+  ResultHandler(this.onReceive, this.showDb);
   final Function(String, String, String, int) onReceive;
+  final Function(List, int, int) showDb;
   final platform = MethodChannel('com.example.smigoal/sms');
 
   Future<void> init() async {
@@ -31,8 +32,20 @@ class ResultHandler {
         print("From ${sender}, ${timestamp}: Message: ${message}\n");
         onReceive(message, sender, result, timestamp);
         break;
+
+      case "showDb":
+        final List dbDatas = call.arguments['dbDatas'];
+        final int ham = call.arguments['ham'];
+        final int spam = call.arguments['spam'];
+
+        print("Received ${dbDatas.length} datas");
+
+        showDb(dbDatas, ham, spam);
+        break;
+
       default:
         print('Unknown method ${call.method}');
+
     }
   }
 }

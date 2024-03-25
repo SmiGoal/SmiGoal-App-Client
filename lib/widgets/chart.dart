@@ -1,50 +1,134 @@
+import 'package:smigoal/resources/app_colors.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:smigoal/widgets/indicator.dart';
 import 'package:flutter/material.dart';
-import 'dart:math';
 
-class PieChartPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = min(size.width / 2, size.height / 2);
 
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 40; // 도넛 차트의 두께
+class Chart extends StatefulWidget {
+  Chart({super.key});
 
-    // 각 섹션별 데이터와 색상
-    final sections = [
-      PieChartSection(percentage: 25, color: Colors.red),
-      PieChartSection(percentage: 30, color: Colors.green),
-      PieChartSection(percentage: 15, color: Colors.blue),
-      PieChartSection(percentage: 30, color: Colors.orange),
-    ];
+  int _ham = 1;
+  int _spam = 1;
 
-    double startRadian = -pi / 2;
-    for (var section in sections) {
-      final sweepRadian = (section.percentage / 100) * 2 * pi;
-      paint.color = section.color;
+  set ham(int ham) => _ham = ham;
+  set spam(int spam) => _spam = spam;
 
-      canvas.drawArc(
-        Rect.fromCircle(center: center, radius: radius),
-        startRadian,
-        sweepRadian,
-        false,
-        paint,
-      );
-
-      startRadian += sweepRadian;
-    }
-  }
+  int get getHam => _ham;
+  int get getSpam => _spam;
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
-  }
+  State<StatefulWidget> createState() => ChartState();
 }
 
-class PieChartSection {
-  final double percentage;
-  final Color color;
+class ChartState extends State<Chart> {
+  int touchedIndex = -1;
 
-  PieChartSection({required this.percentage, required this.color});
+  @override
+  Widget build(BuildContext context) {
+    return AspectRatio(
+      aspectRatio: 1.3,
+      child: Row(
+        children: <Widget>[
+          const SizedBox(
+            height: 18,
+          ),
+          Expanded(
+            child: AspectRatio(
+              aspectRatio: 1,
+              child: PieChart(
+                PieChartData(
+                  pieTouchData: PieTouchData(
+                    touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                      setState(() {
+                        if (!event.isInterestedForInteractions ||
+                            pieTouchResponse == null ||
+                            pieTouchResponse.touchedSection == null) {
+                          touchedIndex = -1;
+                          return;
+                        }
+                        touchedIndex = pieTouchResponse
+                            .touchedSection!.touchedSectionIndex;
+                      });
+                    },
+                  ),
+                  borderData: FlBorderData(
+                    show: false,
+                  ),
+                  sectionsSpace: 0,
+                  centerSpaceRadius: 40,
+                  sections: showingSections(),
+                ),
+              ),
+            ),
+          ),
+          const Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Indicator(
+                color: AppColors.contentColorBlue,
+                text: '안전한 문자',
+                isSquare: true,
+              ),
+              SizedBox(
+                height: 4,
+              ),
+              Indicator(
+                color: AppColors.contentColorRed,
+                text: '스미싱 문자',
+                isSquare: true,
+              ),
+              SizedBox(
+                height: 18,
+              ),
+            ],
+          ),
+          const SizedBox(
+            width: 28,
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<PieChartSectionData> showingSections() {
+    int ham = widget.getHam;
+    int spam = widget.getSpam;
+    return List.generate(4, (i) {
+      final isTouched = i == touchedIndex;
+      final fontSize = isTouched ? 25.0 : 16.0;
+      final radius = isTouched ? 60.0 : 50.0;
+      const shadows = [Shadow(color: Colors.black, blurRadius: 2)];
+      switch (i) {
+        case 0:
+          return PieChartSectionData(
+            color: AppColors.contentColorBlue,
+            value: ham/(ham+spam)*100,
+            title: '${ham/(ham+spam)*100}%',
+            radius: radius,
+            titleStyle: TextStyle(
+              fontSize: fontSize,
+              fontWeight: FontWeight.bold,
+              color: AppColors.mainTextColor1,
+              shadows: shadows,
+            ),
+          );
+        case 1:
+          return PieChartSectionData(
+            color: AppColors.contentColorRed,
+            value: spam/(ham+spam)*100,
+            title: '${spam/(ham+spam)*100}%',
+            radius: radius,
+            titleStyle: TextStyle(
+              fontSize: fontSize,
+              fontWeight: FontWeight.bold,
+              color: AppColors.mainTextColor1,
+              shadows: shadows,
+            ),
+          );
+        default:
+          throw Error();
+      }
+    });
+  }
 }

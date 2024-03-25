@@ -96,6 +96,7 @@ class MainActivity : FlutterFragmentActivity() {
         super.onResume()
         dbScope.launch {
             val entity = db.messageDao().getCurrentMessage()
+            val entities = db.messageDao().getMessage()
             Log.i("test", "last Message : ${entity.toString()}")
             withContext(Dispatchers.Main) {
                 if(entity != null) {
@@ -105,6 +106,33 @@ class MainActivity : FlutterFragmentActivity() {
                             "sender" to entity.sender,
                             "result" to if (entity.isSmishing) "spam" else "ham",
                             "timestamp" to entity.timestamp
+                        )
+                    )
+                }
+                if(entities != null) {
+                    var ham = 0
+                    var spam = 0
+                    for (data in entities) {
+                        if(data.isSmishing) spam++ else ham++
+                    }
+                    Log.i("test", entities.size.toString())
+                    val dbDatas = entities.map { data ->
+                        mapOf(
+                            "id" to data.id,
+                            "url" to data.url,
+                            "message" to data.message,
+                            "sender" to data.sender,
+                            "containsUrl" to data.containsUrl,
+                            "timestamp" to data.timestamp,
+                            "isSmishing" to data.isSmishing
+                        )
+                    }
+
+                    SMSServiceData.channel.invokeMethod(
+                        "showDb", mapOf(
+                            "dbDatas" to dbDatas,
+                            "ham" to ham,
+                            "spam" to spam
                         )
                     )
                 }
