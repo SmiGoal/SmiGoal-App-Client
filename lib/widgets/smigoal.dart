@@ -17,8 +17,9 @@ class _SmiGoalState extends State<SmiGoal> {
   String message = "SmiGoal....";
   String sender = "KU";
   String result = "Unknown";
+  int ham=1, spam=1;
   DateTime timestamp = DateTime.now();
-  Chart chart = Chart();
+  Chart? chart = null;
 
   @override
   void initState() {
@@ -39,14 +40,16 @@ class _SmiGoalState extends State<SmiGoal> {
 
   void _getDbDatas(List dbDatas, int ham, int spam){
     setState(() {
-      chart.ham = ham;
-      chart.spam = spam;
+      print('getDB');
+      this.ham = ham;
+      this.spam = spam;
+      chart = Chart(ham: ham, spam: spam);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    print('hello');
+    print('Smigoal');
 
     return Scaffold(
       appBar: AppBar(),
@@ -66,7 +69,12 @@ class _SmiGoalState extends State<SmiGoal> {
               ),
             ),
             const SizedBox(height: 30),
-            chart,
+            Container(
+              child: Card(
+                child: Chart(ham: ham, spam: spam),
+              ),
+              padding: EdgeInsets.all(10),
+            ),
             Text(message),
             Text(sender),
             Text(result),

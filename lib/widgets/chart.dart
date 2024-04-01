@@ -1,3 +1,4 @@
+// @dart=2.17
 import 'package:smigoal/resources/app_colors.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:smigoal/widgets/indicator.dart';
@@ -5,16 +6,20 @@ import 'package:flutter/material.dart';
 
 
 class Chart extends StatefulWidget {
-  Chart({super.key});
+  Chart({
+    super.key,
+    required this.ham,
+    required this.spam
+  });
 
-  int _ham = 1;
-  int _spam = 1;
+  int ham;
+  int spam;
 
-  set ham(int ham) => _ham = ham;
-  set spam(int spam) => _spam = spam;
+  set setHam(int ham) => ham = ham;
+  set setSpam(int spam) => spam = spam;
 
-  int get getHam => _ham;
-  int get getSpam => _spam;
+  int get getHam => ham;
+  int get getSpam => spam;
 
   @override
   State<StatefulWidget> createState() => ChartState();
@@ -25,6 +30,7 @@ class ChartState extends State<Chart> {
 
   @override
   Widget build(BuildContext context) {
+    print("Chart");
     return AspectRatio(
       aspectRatio: 1.3,
       child: Row(
@@ -94,7 +100,7 @@ class ChartState extends State<Chart> {
   List<PieChartSectionData> showingSections() {
     int ham = widget.getHam;
     int spam = widget.getSpam;
-    return List.generate(4, (i) {
+    return List.generate(2, (i) {
       final isTouched = i == touchedIndex;
       final fontSize = isTouched ? 25.0 : 16.0;
       final radius = isTouched ? 60.0 : 50.0;

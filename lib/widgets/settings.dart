@@ -23,7 +23,7 @@ class Settings extends StatelessWidget {
             ),
             ListTile(
               leading: Icon(Icons.message),
-              title: Text('Messages'),
+              title: Text('메시지 통계'),
               onTap: () {
                 // 여기에 메시지 항목이 클릭됐을 때의 동작을 추가하세요.
                 Navigator.pop(context);
@@ -31,7 +31,7 @@ class Settings extends StatelessWidget {
             ),
             ListTile(
               leading: Icon(Icons.account_circle),
-              title: Text('Profile'),
+              title: Text('개발자 정보'),
               onTap: () {
                 // 프로필 항목을 클릭했을 때의 동작을 추가하세요.
                 Navigator.pop(context);
@@ -39,7 +39,7 @@ class Settings extends StatelessWidget {
             ),
             ListTile(
               leading: Icon(Icons.settings),
-              title: Text('Settings'),
+              title: Text('설정'),
               onTap: () {
                 // 설정 항목을 클릭했을 때의 동작을 추가하세요.
                 Navigator.pop(context);
