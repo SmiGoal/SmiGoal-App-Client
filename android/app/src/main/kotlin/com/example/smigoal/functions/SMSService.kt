@@ -9,5 +9,5 @@ import retrofit2.http.Url
 
 interface SMSService {
     @POST
-    fun requestServer(@Url url: String, @Body message: Message): Call<String>
+    fun requestServer(@Url url: String, @Body message: Message): Call<Map<String, Any>>
 }

@@ -25,11 +25,11 @@ object RequestServer {
 
     val okHttpClient = OkHttpClient.Builder()
         // 연결 타임아웃 시간 설정
-        .connectTimeout(30, TimeUnit.SECONDS) // 연결 타임아웃 시간을 30초로 설정
+        .connectTimeout(180, TimeUnit.SECONDS) // 연결 타임아웃 시간을 30초로 설정
         // 읽기 타임아웃 시간 설정
-        .readTimeout(30, TimeUnit.SECONDS) // 읽기 타임아웃 시간을 30초로 설정
+        .readTimeout(180, TimeUnit.SECONDS) // 읽기 타임아웃 시간을 30초로 설정
         // 쓰기 타임아웃 시간 설정
-        .writeTimeout(30, TimeUnit.SECONDS) // 쓰기 타임아웃 시간을 30초로 설정
+        .writeTimeout(180, TimeUnit.SECONDS) // 쓰기 타임아웃 시간을 30초로 설정
         .build()
 
     val retrofit = Retrofit.Builder()
@@ -48,12 +48,12 @@ object RequestServer {
     val apiService = retrofitGoogle.create(APIService::class.java)
 
     fun getServerRequest(context: Context, url: String, message: Message, sender: String, containsUrl: Boolean, timestamp: Long) {
-        smsService.requestServer(url, message).enqueue(object: Callback<String> {
-            override fun onResponse(call: Call<String>, response: Response<String>) {
+        smsService.requestServer(url, message).enqueue(object: Callback<Map<String, Any>> {
+            override fun onResponse(call: Call<Map<String, Any>>, response: Response<Map<String, Any>>) {
                 val body = response.body()!!
-                Log.i("test", body)
-                val entity = when(body) {
-                    "ham" -> MessageEntity(message.url, message.fullMessage, sender, containsUrl, timestamp, false)
+                Log.i("test", body.toString())
+                val entity = when(body["status"]) {
+                    "success" -> MessageEntity(message.url, message.fullMessage, sender, containsUrl, timestamp, false)
                     else -> MessageEntity(message.url, message.fullMessage, sender, containsUrl, timestamp, true)
                 }
                 Log.i("test", entity.toString())
@@ -73,7 +73,7 @@ object RequestServer {
                     )
                 }
             }
-            override fun onFailure(call: Call<String>, t: Throwable) {
+            override fun onFailure(call: Call<Map<String, Any>>, t: Throwable) {
                 Log.e("test", t.toString())
             }
         })
