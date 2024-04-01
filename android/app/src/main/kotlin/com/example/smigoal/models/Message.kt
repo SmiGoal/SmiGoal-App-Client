@@ -5,7 +5,7 @@ import java.util.regex.Pattern
 
 data class Message(
     @SerializedName("message") val message: String,
-    @SerializedName("url") val url: String?,
+    @SerializedName("url") val url: List<String>?,
     val fullMessage: String
 )
 

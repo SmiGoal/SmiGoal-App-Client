@@ -11,14 +11,11 @@ import android.graphics.Color
 import android.provider.Telephony
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.ProcessLifecycleOwner
 import com.example.smigoal.BuildConfig
 import com.example.smigoal.MainActivity
 import com.example.smigoal.R
 import com.example.smigoal.db.MessageEntity
 import com.example.smigoal.models.Message
-import com.example.smigoal.models.SMSServiceData
 import com.example.smigoal.models.extractUrls
 import io.flutter.plugin.common.MethodChannel
 
@@ -56,7 +53,8 @@ class SMSReceiver(private var channel: MethodChannel? = null) : BroadcastReceive
                 Log.i("test", "url: $urls")
                 RequestServer.getisThreatURL(context, urls)
             }
-            RequestServer.getServerRequest(context, BASE_URL, Message(message, if(urls.isNotEmpty()) urls[0] else null /*null*/, fullMessage.toString()), sender, containsUrl, timestamp)
+            RequestServer.getServerRequest(context, BASE_URL, Message(message,
+                urls.ifEmpty { null } /*null*/, fullMessage.toString()), sender, containsUrl, timestamp)
         }
     }
 
