@@ -5,7 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../resources/app_colors.dart';
 import './chart/chart.dart';
 
-import './settings.dart';
+import 'drawer/drawer_page.dart';
 
 class SmiGoal extends StatefulWidget {
   SmiGoal({super.key});
@@ -14,7 +14,7 @@ class SmiGoal extends StatefulWidget {
   State<SmiGoal> createState() => _SmiGoalState();
 }
 
-class _SmiGoalState extends State<SmiGoal> {
+class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
   String message = "SmiGoal....";
   String sender = "KU";
   String result = "Unknown";
@@ -25,8 +25,15 @@ class _SmiGoalState extends State<SmiGoal> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     // final resultHandler = ResultHandler(_getMessage, _getDbDatas);
     // resultHandler.init();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   // Future<String> get message async {
@@ -49,6 +56,35 @@ class _SmiGoalState extends State<SmiGoal> {
     });
   }
 
+  Future<bool> _onWillPop() async {
+    return await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('앱 종료'),
+          content: Text('앱을 종료하시겠습니까?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text('아니요'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text('예'),
+            ),
+          ],
+        );
+      },
+    ) ??
+        false;
+  }
+
+  @override
+  Future<bool> didPopRoute() async {
+    final result = await _onWillPop();
+    return result;
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
@@ -65,7 +101,7 @@ class _SmiGoalState extends State<SmiGoal> {
 
     return Scaffold(
       appBar: AppBar(),
-      drawer: const Settings(),
+      drawer: const DrawerPage(),
       body: SizedBox(
         width: double.infinity,
         height: double.infinity,
@@ -114,12 +150,12 @@ class _SmiGoalState extends State<SmiGoal> {
                             Text(
                               "스미싱 피해 신고",
                               style:
-                              TextStyle(color: AppColors.contentColorWhite),
+                                  TextStyle(color: AppColors.contentColorWhite),
                             ),
                             Text(
                               "국번없이 112",
                               style:
-                              TextStyle(color: AppColors.contentColorWhite),
+                                  TextStyle(color: AppColors.contentColorWhite),
                             ),
                           ],
                         ),
@@ -138,12 +174,12 @@ class _SmiGoalState extends State<SmiGoal> {
                             Text(
                               "오늘은 내가 짜파게티 요리사",
                               style:
-                              TextStyle(color: AppColors.contentColorBlack),
+                                  TextStyle(color: AppColors.contentColorBlack),
                             ),
                             Text(
                               "국번없이 112",
                               style:
-                              TextStyle(color: AppColors.contentColorBlack),
+                                  TextStyle(color: AppColors.contentColorBlack),
                             ),
                           ],
                         ),
