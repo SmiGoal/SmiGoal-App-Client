@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 class MessageEntity {
   final int id;
   final String url;
