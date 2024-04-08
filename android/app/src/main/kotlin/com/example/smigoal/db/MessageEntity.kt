@@ -12,8 +12,12 @@ data class MessageEntity(
     val sender: String,
     val containsUrl: Boolean,
     val timestamp: Long,
-    val isSmishing: Boolean
+    var isSmishing: Boolean
 ) {
     constructor(url: List<String>?, message: String, sender: String, containsUrl: Boolean, timestamp: Long, isSmishing: Boolean)
             : this(null, url, message, sender, containsUrl, timestamp, isSmishing)
+
+    fun setIsSmishing(isSmishing: Boolean) {
+        this.isSmishing = isSmishing
+    }
 }

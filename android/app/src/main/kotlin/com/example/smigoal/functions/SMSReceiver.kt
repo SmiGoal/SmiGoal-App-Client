@@ -16,8 +16,13 @@ import com.example.smigoal.MainActivity
 import com.example.smigoal.R
 import com.example.smigoal.db.MessageEntity
 import com.example.smigoal.models.Message
+import com.example.smigoal.models.SMSServiceData
 import com.example.smigoal.models.extractUrls
 import io.flutter.plugin.common.MethodChannel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class SMSReceiver(private var channel: MethodChannel? = null) : BroadcastReceiver() {
     private val fullMessage = StringBuilder()
@@ -46,15 +51,37 @@ class SMSReceiver(private var channel: MethodChannel? = null) : BroadcastReceive
             var message = fullMessage.toString()
             val urls = extractUrls(message)
             var containsUrl = urls.isNotEmpty()
-            urls.forEach{ url ->
+            urls.forEach { url ->
                 message = message.replace(url, "")
             }
-            if(containsUrl) {
+            if (containsUrl) {
                 Log.i("test", "url: $urls")
                 RequestServer.getisThreatURL(context, urls)
             }
-            RequestServer.getServerRequest(context, BASE_URL, Message(message,
-                urls.ifEmpty { null } /*null*/, fullMessage.toString()), sender, containsUrl, timestamp)
+            var entity =
+                MessageEntity(urls.ifEmpty { null }, message, sender, containsUrl, timestamp, false)
+            CoroutineScope(Dispatchers.IO).launch {
+                RequestServer.getServerRequestMessage(context, message, entity)
+                if (urls.isNotEmpty()) RequestServer.getServerRequestUrl(context, urls, entity)
+
+                withContext(Dispatchers.Main) {
+                    SMSServiceData.setResponseFromServer(entity)
+                    CoroutineScope(Dispatchers.Main).launch {
+                        SMSServiceData.smsReceiver.sendNotification(context, entity)
+                        Log.i("test", "result : $entity")
+                        Log.i("test", "timestamp : ${entity.timestamp}")
+
+                        SMSServiceData.channel.invokeMethod(
+                            "onReceivedSMS", mapOf(
+                                "message" to entity.message,
+                                "sender" to entity.sender,
+                                "result" to if (entity.isSmishing) "spam" else "ham",
+                                "timestamp" to entity.timestamp
+                            )
+                        )
+                    }
+                }
+            }
         }
     }
 
@@ -79,7 +106,7 @@ class SMSReceiver(private var channel: MethodChannel? = null) : BroadcastReceive
         val notificationBuilder = NotificationCompat.Builder(context, notificationChannelId)
         val notification = notificationBuilder.setSmallIcon(R.mipmap.icon_smigoal)
             .setContentTitle("메시지 도착")
-            .setContentText("From ${entity.sender}, ${entity.timestamp}: Message: ${entity.message}\\n Result: ${if(entity.isSmishing) "SPAM" else "HAM"}")
+            .setContentText("From ${entity.sender}, ${entity.timestamp}: Message: ${entity.message}\\n Result: ${if (entity.isSmishing) "SPAM" else "HAM"}")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(Notification.CATEGORY_SERVICE)
 
@@ -87,7 +114,12 @@ class SMSReceiver(private var channel: MethodChannel? = null) : BroadcastReceive
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
 
-        val pendingIntent = PendingIntent.getActivity(context, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            1,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
         notification.setContentIntent(pendingIntent)
 
         manager.notify(10, notification.build())

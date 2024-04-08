@@ -47,32 +47,44 @@ object RequestServer {
     val smsService = retrofit.create(SMSService::class.java)
     val apiService = retrofitGoogle.create(APIService::class.java)
 
-    fun getServerRequest(context: Context, url: String, message: Message, sender: String, containsUrl: Boolean, timestamp: Long) {
-        smsService.requestServer(url, message).enqueue(object: Callback<Map<String, Any>> {
+    fun getServerRequestMessage(context: Context, message: String, entity: MessageEntity) {
+        smsService.requestMessageToServer(message).enqueue(object: Callback<Map<String, Any>> {
             override fun onResponse(call: Call<Map<String, Any>>, response: Response<Map<String, Any>>) {
                 val body = response.body()!!
                 Log.i("test", body.toString())
-                val entity = when(body["status"]) {
-                    "success" -> MessageEntity(message.url, message.fullMessage, sender, containsUrl, timestamp, false)
-                    else -> MessageEntity(message.url, message.fullMessage, sender, containsUrl, timestamp, true)
+                val status: String = body["status"] as String
+                val code: Int = body["code"] as Int
+                if (status == "success") {
+                    val isSmishing: Boolean = body["result"] as Boolean
+                    entity.setIsSmishing(isSmishing)
+
                 }
                 Log.i("test", entity.toString())
-                SMSServiceData.setResponseFromServer(entity)
-                CoroutineScope(Dispatchers.Main).launch {
-                    SMSServiceData.smsReceiver.sendNotification(context, entity)
-                    Log.i("test", "result : $entity")
-                    Log.i("test", "timestamp : ${entity.timestamp}")
 
-                    SMSServiceData.channel.invokeMethod(
-                        "onReceivedSMS", mapOf(
-                            "message" to entity.message,
-                            "sender" to entity.sender,
-                            "result" to if (entity.isSmishing) "spam" else "ham",
-                            "timestamp" to entity.timestamp
-                        )
-                    )
-                }
             }
+            override fun onFailure(call: Call<Map<String, Any>>, t: Throwable) {
+                Log.e("test", t.toString())
+            }
+        })
+    }
+
+    fun getServerRequestUrl(context: Context, urls: List<String>, entity: MessageEntity) {
+        smsService.requestUrlToServer(urls).enqueue(object: Callback<Map<String, Any>> {
+            override fun onResponse(
+                call: Call<Map<String, Any>>,
+                response: Response<Map<String, Any>>
+            ) {
+                val body = response.body()!!
+                val status: String = body["status"] as String
+                val code: Int = body["code"] as Int
+                Log.i("test", status)
+                if (status == "success") {
+                    val isSmishing: Boolean = ((body["result"] as Map<*, *>)["result"] as String) == "smishing"
+                    entity.setIsSmishing(isSmishing)
+                }
+                Log.i("test", body.toString())
+            }
+
             override fun onFailure(call: Call<Map<String, Any>>, t: Throwable) {
                 Log.e("test", t.toString())
             }
