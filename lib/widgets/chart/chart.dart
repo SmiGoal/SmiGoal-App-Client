@@ -1,5 +1,5 @@
 // @dart=2.17
-import '../../resources/app_colors.dart';
+import '../../resources/app_resources.dart';
 import 'package:fl_chart/fl_chart.dart';
 import './indicator.dart';
 import 'package:flutter/material.dart';

@@ -23,3 +23,7 @@ class AppColors {
   static const Color contentColorRed = Color(0xFFE80054);
   static const Color contentColorCyan = Color(0xFF50E4FF);
 }
+
+class Assets {
+  static const String appIconPath = 'assets/images/icon_smigoal_removed_bg.png';
+}
