@@ -14,7 +14,7 @@ class _SettingsPageState extends State<SettingsPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('설정'),
-        leading: Image.asset('assets/icon_smigoal_removed_bg.png'),
+        leading: Image.asset('assets/images/icon_smigoal_removed_bg.png'),
       ),
       body: ListView(
         children: <Widget>[

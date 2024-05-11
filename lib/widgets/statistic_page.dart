@@ -2,7 +2,8 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../models/sms_message.dart';
+import '../models/message_entity.dart';
+import 'list/statistic_list_item.dart';
 
 class StatisticPage extends StatefulWidget {
   const StatisticPage({super.key});
@@ -12,19 +13,103 @@ class StatisticPage extends StatefulWidget {
 }
 
 class _StatisticPageState extends State<StatisticPage> {
-  List<SMSMessage> messages = [
-    SMSMessage(sender: 'a', content: 'b', timestamp: DateTime.now(), isSmishing: false),
-    SMSMessage(sender: 'a', content: 'b', timestamp: DateTime.now(), isSmishing: true),
-    SMSMessage(sender: 'a', content: 'b', timestamp: DateTime.now(), isSmishing: false),
-    SMSMessage(sender: 'a', content: 'b', timestamp: DateTime.now(), isSmishing: false),
-    SMSMessage(sender: 'a', content: 'b', timestamp: DateTime.now(), isSmishing: false),
-    SMSMessage(sender: 'a', content: 'b', timestamp: DateTime.now(), isSmishing: true),
-    SMSMessage(sender: 'a', content: 'b', timestamp: DateTime.now(), isSmishing: false),
-    SMSMessage(sender: 'a', content: 'b', timestamp: DateTime.now(), isSmishing: false),
-    SMSMessage(sender: 'a', content: 'b', timestamp: DateTime.now(), isSmishing: false),
-    SMSMessage(sender: 'a', content: 'b', timestamp: DateTime.now(), isSmishing: true),
-    SMSMessage(sender: 'a', content: 'b', timestamp: DateTime.now(), isSmishing: false),
-    SMSMessage(sender: 'a', content: 'b', timestamp: DateTime.now(), isSmishing: false),
+  List<MessageEntity> messages = [
+    MessageEntity(
+        sender: 'a',
+        message: 'b'*10000,
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        isSmishing: false,
+        containsUrl: true,
+        id: 1,
+        url: ''),
+    MessageEntity(
+        sender: 'b',
+        message: 'c',
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        isSmishing: true,
+        containsUrl: true,
+        id: 1,
+        url: ''),
+    MessageEntity(
+        sender: 'c',
+        message: 'd',
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        isSmishing: false,
+        containsUrl: true,
+        id: 1,
+        url: ''),
+    MessageEntity(
+        sender: 'd',
+        message: 'e',
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        isSmishing: false,
+        containsUrl: true,
+        id: 1,
+        url: ''),
+    MessageEntity(
+        sender: 'e',
+        message: 'f',
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        isSmishing: false,
+        containsUrl: true,
+        id: 1,
+        url: ''),
+    MessageEntity(
+        sender: 'f',
+        message: 'g',
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        isSmishing: true,
+        containsUrl: true,
+        id: 1,
+        url: ''),
+    MessageEntity(
+        sender: 'g',
+        message: 'h',
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        isSmishing: false,
+        containsUrl: true,
+        id: 1,
+        url: ''),
+    MessageEntity(
+        sender: 'h',
+        message: 'i',
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        isSmishing: false,
+        containsUrl: true,
+        id: 1,
+        url: ''),
+    MessageEntity(
+        sender: 'i',
+        message: 'j',
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        isSmishing: false,
+        containsUrl: true,
+        id: 1,
+        url: ''),
+    MessageEntity(
+        sender: 'j',
+        message: 'k',
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        isSmishing: true,
+        containsUrl: true,
+        id: 1,
+        url: ''),
+    MessageEntity(
+        sender: 'k',
+        message: 'l',
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        isSmishing: false,
+        containsUrl: true,
+        id: 1,
+        url: ''),
+    MessageEntity(
+        sender: 'k',
+        message: 'm',
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        isSmishing: false,
+        containsUrl: true,
+        id: 1,
+        url: ''),
   ];
 
   void _getMessages() {
@@ -61,22 +146,7 @@ class _StatisticPageState extends State<StatisticPage> {
               itemCount: messages.length,
               itemBuilder: (context, index) {
                 final message = messages[index];
-                return Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 2, 8, 2),
-                  child: GestureDetector(
-                    onTap: () {},
-                    child: Card(
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: message.isSmishing ? Colors.red : Colors.green,
-                          child: Icon(message.isSmishing ? Icons.warning : Icons.thumb_up, color: Colors.white),
-                        ),
-                        title: Text(message.isSmishing ? '스미싱 문자' : '안전한 문자'),
-                        subtitle: Text('${message.sender} - ${message.timestamp}'),
-                      ),
-                    ),
-                  ),
-                );
+                return StatisticListItem(message: message);
               },
             ),
           ),

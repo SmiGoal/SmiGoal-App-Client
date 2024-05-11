@@ -2,10 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:smigoal/widgets/statistic_page.dart';
+import '../widgets/statistic_page.dart';
 import '../widgets/analysis_manual_page.dart';
 import '../resources/app_resources.dart';
-import './chart/chart.dart';
+import './chart/circular_chart.dart';
 
 import 'drawer/drawer_page.dart';
 
@@ -23,7 +23,7 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
   int ham = 1, spam = 1;
   DateTime timestamp = DateTime.now();
   DateTime? lastPressed;
-  Chart? chart = null;
+  CircularChart? chart = null;
 
   @override
   void initState() {
@@ -55,7 +55,7 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
       print('getDB');
       this.ham = ham;
       this.spam = spam;
-      chart = Chart(ham: ham, spam: spam);
+      chart = CircularChart(ham: ham, spam: spam);
     });
   }
 
@@ -148,7 +148,7 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
                           ),
                         ),
                       ),
-                      Chart(ham: ham, spam: spam),
+                      CircularChart(ham: ham, spam: spam),
                     ],
                   ),
                 ),
