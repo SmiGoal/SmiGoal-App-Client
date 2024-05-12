@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+const platform = MethodChannel('com.example.smigoal/sms');
 
 class AppColors {
   static const Color primary = contentColorCyan;
@@ -22,4 +25,8 @@ class AppColors {
   static const Color contentColorPink = Color(0xFFFF3AF2);
   static const Color contentColorRed = Color(0xFFE80054);
   static const Color contentColorCyan = Color(0xFF50E4FF);
+}
+
+class Assets {
+  static const String appIconPath = 'assets/images/icon_smigoal_removed_bg.png';
 }

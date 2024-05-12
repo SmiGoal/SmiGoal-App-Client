@@ -3,6 +3,7 @@ class MessageEntity {
   final String url;
   final String message;
   final String sender;
+  final String thumbnail;
   final bool containsUrl;
   final int timestamp;
   final bool isSmishing;
@@ -12,6 +13,7 @@ class MessageEntity {
     required this.url,
     required this.message,
     required this.sender,
+    required this.thumbnail,
     required this.containsUrl,
     required this.timestamp,
     required this.isSmishing
@@ -23,6 +25,7 @@ class MessageEntity {
         url: map['url'] as String,
         message: map['message'] as String,
         sender: map['sender'] as String,
+        thumbnail: map['thumbnail'] as String,
         containsUrl: map['containsUrl'] as bool,
         timestamp: map['timestamp'] as int,
         isSmishing: map['isSmishing'] as bool

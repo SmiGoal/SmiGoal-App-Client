@@ -22,9 +22,11 @@ object SMSServiceData {
     val isServiceRunning = MutableLiveData<Boolean>(false)
 
     val CHANNEL = "com.example.smigoal/sms"
+    val SETTINGS_CHANNEL = "com.example.smigoal/settings"
     lateinit var db: MessageDB
     lateinit var smsReceiver: SMSReceiver
     lateinit var channel: MethodChannel
+    lateinit var settings_channel: MethodChannel
     fun setResponseFromServer(entity: MessageEntity) {
         CoroutineScope(Dispatchers.IO).launch {
             Log.i("test", "db insert")

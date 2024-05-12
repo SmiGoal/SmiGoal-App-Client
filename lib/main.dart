@@ -2,11 +2,13 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:smigoal/resources/app_resources.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import './widgets/smigoal.dart';
 
 var kColorScheme = ColorScheme.fromSeed(
-  seedColor: const Color.fromARGB(255, 96, 59, 181),
+  seedColor: AppColors.contentColorBlue,
 );
 var kDarkColorScheme = ColorScheme.fromSeed(
   brightness: Brightness.dark,
@@ -24,13 +26,21 @@ void main() async {
   ]).then((fn) {
     runApp(MaterialApp(
       theme: ThemeData().copyWith(
-        useMaterial3: true,
         colorScheme: kColorScheme,
       ),
       darkTheme: ThemeData().copyWith(
-        useMaterial3: true,
         colorScheme: kDarkColorScheme,
       ),
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: [
+        Locale('en', 'US'), // 영어
+        Locale('ko', 'KR'), // 한국어
+        // 다른 지원 언어 추가
+      ],
       home: SmiGoal(),
     ));
   });

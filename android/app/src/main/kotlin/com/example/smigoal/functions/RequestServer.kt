@@ -6,11 +6,12 @@ import com.example.smigoal.BuildConfig
 import com.example.smigoal.db.MessageEntity
 import com.example.smigoal.models.APIRequestData
 import com.example.smigoal.models.APIResponseDTO
-import com.example.smigoal.models.Message
 import com.example.smigoal.models.SMSServiceData
+import com.example.smigoal.models.extractUrls
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import retrofit2.Call
 import retrofit2.Callback
@@ -47,7 +48,44 @@ object RequestServer {
     val smsService = retrofit.create(SMSService::class.java)
     val apiService = retrofitGoogle.create(APIService::class.java)
 
-    fun getServerRequestMessage(context: Context, message: String, entity: MessageEntity) {
+    fun extractMessage(context: Context, fullMessage: String, sender: String, timestamp: Long) {
+        var message = fullMessage.toString()
+        val urls = extractUrls(message)
+        var containsUrl = urls.isNotEmpty()
+        urls.forEach { url ->
+            message = message.replace(url, "")
+        }
+        if (containsUrl) {
+            Log.i("test", "url: $urls")
+            RequestServer.getisThreatURL(urls)
+        }
+        var entity =
+            MessageEntity(urls.ifEmpty { null }, message, sender, "", containsUrl, timestamp, false)
+        CoroutineScope(Dispatchers.IO).launch {
+            RequestServer.getServerRequestMessage(message, entity)
+            if (urls.isNotEmpty()) RequestServer.getServerRequestUrl(urls, entity)
+
+            withContext(Dispatchers.Main) {
+                SMSServiceData.setResponseFromServer(entity)
+                CoroutineScope(Dispatchers.Main).launch {
+                    NotificationService.sendNotification(context, entity)
+                    Log.i("test", "result : $entity")
+                    Log.i("test", "timestamp : ${entity.timestamp}")
+
+                    SMSServiceData.channel.invokeMethod(
+                        "onReceivedSMS", mapOf(
+                            "message" to entity.message,
+                            "sender" to entity.sender,
+                            "result" to if (entity.isSmishing) "spam" else "ham",
+                            "timestamp" to entity.timestamp
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    fun getServerRequestMessage(message: String, entity: MessageEntity) {
         smsService.requestMessageToServer(message).enqueue(object: Callback<Map<String, Any>> {
             override fun onResponse(call: Call<Map<String, Any>>, response: Response<Map<String, Any>>) {
                 val body = response.body()!!
@@ -57,7 +95,6 @@ object RequestServer {
                 if (status == "success") {
                     val isSmishing: Boolean = body["result"] as Boolean
                     entity.setIsSmishing(isSmishing)
-
                 }
                 Log.i("test", entity.toString())
 
@@ -68,7 +105,7 @@ object RequestServer {
         })
     }
 
-    fun getServerRequestUrl(context: Context, urls: List<String>, entity: MessageEntity) {
+    fun getServerRequestUrl(urls: List<String>, entity: MessageEntity) {
         smsService.requestUrlToServer(urls).enqueue(object: Callback<Map<String, Any>> {
             override fun onResponse(
                 call: Call<Map<String, Any>>,
@@ -91,7 +128,7 @@ object RequestServer {
         })
     }
 
-    fun getisThreatURL(context: Context, urls: List<String>) {
+    fun getisThreatURL(urls: List<String>) {
         apiService.getisThreatURL(param = APIRequestData(
             APIRequestData.Client(),
             APIRequestData.ThreatInfo(
