@@ -2,8 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../resources/app_colors.dart';
-import './chart/chart.dart';
+import '../widgets/statistic_page.dart';
+import '../widgets/analysis_manual_page.dart';
+import '../resources/app_resources.dart';
+import './chart/circular_chart.dart';
 
 import 'drawer/drawer_page.dart';
 
@@ -20,7 +22,8 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
   String result = "Unknown";
   int ham = 1, spam = 1;
   DateTime timestamp = DateTime.now();
-  Chart? chart = null;
+  DateTime? lastPressed;
+  CircularChart? chart = null;
 
   @override
   void initState() {
@@ -52,31 +55,24 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
       print('getDB');
       this.ham = ham;
       this.spam = spam;
-      chart = Chart(ham: ham, spam: spam);
+      chart = CircularChart(ham: ham, spam: spam);
     });
   }
 
   Future<bool> _onWillPop() async {
-    return await showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('앱 종료'),
-          content: Text('앱을 종료하시겠습니까?'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: Text('아니요'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text('예'),
-            ),
-          ],
-        );
-      },
-    ) ??
-        false;
+    final now = DateTime.now();
+
+    if (lastPressed == null || now.difference(lastPressed!) > Duration(seconds: 2)) {
+      lastPressed = now;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('한 번 더 누르면 종료됩니다.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return true; // Prevent pop
+    }
+    return false; // Allow pop
   }
 
   @override
@@ -113,7 +109,7 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
                 Container(
                     width: height * 0.1,
                     height: height * 0.1,
-                    child: Image.asset('assets/icon_smigoal_removed_bg.png')),
+                    child: Image.asset(Assets.appIconPath)),
                 Text(
                   '안전을 지키는 중입니다!',
                   style: GoogleFonts.lato(
@@ -124,14 +120,38 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
                 ),
               ],
             ),
-            const SizedBox(height: 30),
-            const SizedBox(height: 30),
             Container(
               padding: edgeInset,
-              child: Card(
-                elevation: 10,
-                color: AppColors.contentColorWhite,
-                child: Chart(ham: ham, spam: spam),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => StatisticPage()),
+                  );
+                },
+                child: Card(
+                  elevation: 10,
+                  color: AppColors.contentColorWhite,
+                  child: Column(
+                    children: [
+                      Container(
+                        alignment: Alignment.centerLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(10, 10, 0, 0),
+                          child: Text(
+                            '메시지 통계',
+                            style: GoogleFonts.nanumGothic(
+                              color: Colors.black87,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                      CircularChart(ham: ham, spam: spam),
+                    ],
+                  ),
+                ),
               ),
             ),
             Expanded(
@@ -141,21 +161,20 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
                   Expanded(
                     child: Container(
                       padding: edgeInset,
-                      child: const Card(
+                      child: Card(
                         color: AppColors.contentColorBlue,
                         elevation: 10,
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              "스미싱 피해 신고",
-                              style:
-                                  TextStyle(color: AppColors.contentColorWhite),
-                            ),
-                            Text(
-                              "국번없이 112",
-                              style:
-                                  TextStyle(color: AppColors.contentColorWhite),
+                              "스미싱 피해 신고\n국번 없이 112",
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.lato(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.contentColorWhite,
+                              ),
                             ),
                           ],
                         ),
@@ -165,23 +184,35 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
                   Expanded(
                     child: Container(
                       padding: edgeInset,
-                      child: const Card(
-                        color: AppColors.contentColorWhite,
-                        elevation: 10,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              "오늘은 내가 짜파게티 요리사",
-                              style:
-                                  TextStyle(color: AppColors.contentColorBlack),
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    const AnalysisManualPage()),
+                          );
+                        },
+                        child: Card(
+                          color: AppColors.contentColorWhite,
+                          elevation: 10,
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "메시지\n수동 분석",
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.lato(
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.contentColorBlack,
+                                  ),
+                                ),
+                              ],
                             ),
-                            Text(
-                              "국번없이 112",
-                              style:
-                                  TextStyle(color: AppColors.contentColorBlack),
-                            ),
-                          ],
+                          ),
                         ),
                       ),
                     ),
@@ -196,7 +227,7 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
                 child: Container(
                   padding: edgeInset,
                   child: const Card(
-                    color: AppColors.contentColorRed,
+                    color: AppColors.contentColorBlue,
                     elevation: 10,
                     child: Center(
                       child: Text(
