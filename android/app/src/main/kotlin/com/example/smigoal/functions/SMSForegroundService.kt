@@ -41,12 +41,11 @@ class SMSForegroundService : Service() {
 
         val notificationBuilder = NotificationCompat.Builder(this, notificationChannelId)
         val notification = notificationBuilder.setOngoing(true)
-            .setSmallIcon(R.mipmap.icon_smigoal)
+            .setSmallIcon(R.mipmap.icon_smigoal_removed_bg)
             .setContentTitle("스미골(SmiGoal) 작동 중")
             .setContentText("스미골이 당신의 보안을 책임지고 있습니다!")
             .setContentIntent(pendingIntent)
             .build()
-
 
         startForeground(55, notification)
     }

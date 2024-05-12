@@ -2,11 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 
+import '../resources/app_resources.dart';
+
 class ResultHandler {
   ResultHandler(this.onReceive, this.showDb);
   final Function(String, String, String, int) onReceive;
   final Function(List, int, int) showDb;
-  final platform = MethodChannel('com.example.smigoal/sms');
+  // final platform = MethodChannel('com.example.smigoal/sms');
 
   Future<void> init() async {
     // await _flutterLocalNotificationsPlugin.initialize(initializationSettings);

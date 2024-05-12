@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+const platform = MethodChannel('com.example.smigoal/sms');
 
 class AppColors {
   static const Color primary = contentColorCyan;

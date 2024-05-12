@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../functions/result_handler.dart';
 import '../widgets/statistic_page.dart';
 import '../widgets/analysis_manual_page.dart';
 import '../resources/app_resources.dart';
@@ -20,17 +21,17 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
   String message = "SmiGoal....";
   String sender = "KU";
   String result = "Unknown";
-  int ham = 1, spam = 1;
+  int ham = 0, spam = 0;
   DateTime timestamp = DateTime.now();
   DateTime? lastPressed;
-  CircularChart? chart = null;
+  CircularChart? chart;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // final resultHandler = ResultHandler(_getMessage, _getDbDatas);
-    // resultHandler.init();
+    final resultHandler = ResultHandler(_getMessage, _getDbDatas);
+    resultHandler.init();
   }
 
   @override
@@ -62,10 +63,11 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
   Future<bool> _onWillPop() async {
     final now = DateTime.now();
 
-    if (lastPressed == null || now.difference(lastPressed!) > Duration(seconds: 2)) {
+    if (lastPressed == null ||
+        now.difference(lastPressed!) > const Duration(seconds: 2)) {
       lastPressed = now;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('한 번 더 누르면 종료됩니다.'),
           duration: Duration(seconds: 2),
         ),
@@ -148,7 +150,22 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
                           ),
                         ),
                       ),
-                      CircularChart(ham: ham, spam: spam),
+                      Container(
+                        width: double.infinity,
+                        height: height * 0.33,
+                        child: ham + spam > 0
+                          ? CircularChart(ham: ham, spam: spam)
+                          : Center(
+                              child: Text(
+                                '현재 저장된 데이터가 없습니다.',
+                                style: GoogleFonts.nanumGothic(
+                                  color: Colors.black87,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                      ),
                     ],
                   ),
                 ),

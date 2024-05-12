@@ -1,26 +1,35 @@
 package com.example.smigoal
 
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import android.content.pm.PackageManager
+import android.provider.Telephony
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat.registerReceiver
+import androidx.core.content.ContextCompat.startForegroundService
 import com.example.smigoal.db.MessageDB
+import com.example.smigoal.functions.RequestServer
 import com.example.smigoal.functions.SMSForegroundService
 import com.example.smigoal.functions.SMSReceiver
+import com.example.smigoal.functions.SettingsManager
 import com.example.smigoal.models.SMSServiceData
+import com.example.smigoal.models.SMSServiceData.SETTINGS_CHANNEL
 import com.example.smigoal.models.SMSServiceData.channel
 import com.example.smigoal.models.SMSServiceData.db
+import com.example.smigoal.models.SMSServiceData.settings_channel
 import com.example.smigoal.models.SMSServiceData.smsReceiver
+import com.example.smigoal.models.SMSServiceData.stopSMSService
+import com.example.smigoal.models.extractUrls
 import io.flutter.embedding.android.FlutterFragmentActivity
-import io.flutter.embedding.android.KeyData.CHANNEL
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -50,12 +59,75 @@ class MainActivity : FlutterFragmentActivity() {
         }
     }
 
+    private lateinit var settingsManager: SettingsManager
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         checkPermissions()
         init(flutterEngine)
-        registerSMSReceiver()
-        startSMSForegroundService()
+        initMethodChannels()
+        if (isForegroundServiceEnabled()) {
+            registerSMSReceiver()
+            startSMSForegroundService()
+        }
+    }
+
+    private fun initMethodChannels() {
+        settings_channel.setMethodCallHandler {
+                call, result ->
+            when (call.method) {
+                "setForegroundServiceEnabled" -> {
+                    val enabled = call.argument<Boolean>("enabled") ?: false
+                    setForegroundServiceEnabled(enabled)
+                    when (enabled) {
+                        true -> startSMSForegroundService()
+                        false -> stopSMSService(this)
+                    }
+                    result.success(null)
+                }
+                "isForegroundServiceEnabled" -> {
+                    result.success(isForegroundServiceEnabled())
+                }
+                "deleteAllInDB" -> {
+                    dbScope.launch {
+                        db.messageDao().deleteAllMessages()
+                        withContext(Dispatchers.Main) {
+                            result.success(null)
+                        }
+                        channel.invokeMethod("showDB", mapOf(
+                            "dbDatas" to emptyList<Map<*, *>>(),
+                            "ham" to 0,
+                            "spam" to 0,
+                        ))
+                        Log.i("test", db.messageDao().getMessage().toString())
+                    }
+                }
+                else -> result.notImplemented()
+            }
+        }
+
+        channel.setMethodCallHandler {
+            call, result ->
+            when (call.method) {
+                "requestToServer" -> {
+                    val sender: String = call.argument("sender") ?: "null"
+                    val timestamp: Long = call.argument("timestamp") ?: 0
+                    val message: String = call.argument("message") ?: "null"
+                    RequestServer.extractMessage(this, message, sender, timestamp)
+                }
+                else -> result.notImplemented()
+            }
+        }
+    }
+
+    private fun setForegroundServiceEnabled(enabled: Boolean) {
+        val prefs = getSharedPreferences("settings_prefs", Context.MODE_PRIVATE)
+        prefs.edit().putBoolean("foreground_service", enabled).apply()
+    }
+
+    private fun isForegroundServiceEnabled(): Boolean {
+        val prefs = getSharedPreferences("settings_prefs", Context.MODE_PRIVATE)
+        return prefs.getBoolean("foreground_service", false)
     }
 
     fun allPermissionGranted() = permissions.all{
@@ -70,6 +142,7 @@ class MainActivity : FlutterFragmentActivity() {
     private fun init(flutterEngine: FlutterEngine) {
         Log.i("test", "init")
         channel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, SMSServiceData.CHANNEL)
+        settings_channel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, SETTINGS_CHANNEL)
         smsReceiver = SMSReceiver(channel)
         db = MessageDB.getInstance(applicationContext)!!
         dbScope.launch {
@@ -77,13 +150,13 @@ class MainActivity : FlutterFragmentActivity() {
         }
     }
 
-    fun registerSMSReceiver() {
+    private fun registerSMSReceiver() {
         Log.i("test", "registerSMSReceiver")
         // SMSReceiver 등록
-//        val filter = IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION).apply {
-//            priority = Int.MAX_VALUE
-//        }
-//        registerReceiver(smsReceiver, filter)
+        val filter = IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION).apply {
+            priority = Int.MAX_VALUE
+        }
+        registerReceiver(smsReceiver, filter)
     }
 
     // 필요에 따라 onDestroy에서 SMSReceiver 해제
@@ -128,7 +201,7 @@ class MainActivity : FlutterFragmentActivity() {
                         )
                     }
 
-                    SMSServiceData.channel.invokeMethod(
+                    channel.invokeMethod(
                         "showDb", mapOf(
                             "dbDatas" to dbDatas,
                             "ham" to ham,

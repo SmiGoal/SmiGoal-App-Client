@@ -29,6 +29,14 @@ class _AnalysisManualPageState extends State<AnalysisManualPage> {
     });
   }
 
+  Future<void> _requestServer(String sender, int? timestamp, String message) async {
+    platform.invokeMethod('requestToServer', {
+      'sender': sender,
+      'timestamp': timestamp,
+      'message': message,
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -115,9 +123,10 @@ class _AnalysisManualPageState extends State<AnalysisManualPage> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
-                    AlertDialog(
-                      title: Text('dfadd'),
-                    ).build(context);
+                    final String sender = _titleController.text;
+                    final int? timestamp = _selectedDate?.millisecondsSinceEpoch;
+                    final String message = _messageController.text;
+                    _requestServer(sender, timestamp, message);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.contentColorBlue,

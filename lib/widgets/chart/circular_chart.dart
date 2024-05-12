@@ -1,4 +1,6 @@
 // @dart=2.17
+import 'dart:math';
+
 import '../../resources/app_resources.dart';
 import 'package:fl_chart/fl_chart.dart';
 import './indicator.dart';
@@ -98,8 +100,18 @@ class CircularChartState extends State<CircularChart> {
   }
 
   List<PieChartSectionData> showingSections() {
+    int total = widget.ham + widget.spam;
+    if (total == 0) {
+      return [];  // 총합이 0이면 나눗셈 오류를 방지하기 위해 빈 리스트 반환
+    }
+
     int ham = widget.getHam;
     int spam = widget.getSpam;
+
+    // 값들이 양수인지 확인
+    double hamPercentage = max(0, ham) / total * 100;
+    double spamPercentage = max(0, spam) / total * 100;
+
     return List.generate(2, (i) {
       final isTouched = i == touchedIndex;
       final fontSize = isTouched ? 25.0 : 16.0;
@@ -109,8 +121,8 @@ class CircularChartState extends State<CircularChart> {
         case 0:
           return PieChartSectionData(
             color: AppColors.contentColorBlue,
-            value: ham/(ham+spam)*100,
-            title: '${ham/(ham+spam)*100}%',
+            value: hamPercentage,
+            title: '${hamPercentage.toStringAsFixed(1)}%',
             radius: radius,
             titleStyle: TextStyle(
               fontSize: fontSize,
@@ -122,8 +134,8 @@ class CircularChartState extends State<CircularChart> {
         case 1:
           return PieChartSectionData(
             color: AppColors.contentColorRed,
-            value: spam/(ham+spam)*100,
-            title: '${spam/(ham+spam)*100}%',
+            value: spamPercentage,
+            title: '${spamPercentage.toStringAsFixed(1)}%',
             radius: radius,
             titleStyle: TextStyle(
               fontSize: fontSize,
@@ -137,4 +149,44 @@ class CircularChartState extends State<CircularChart> {
       }
     });
   }
+  // List<PieChartSectionData> showingSections() {
+  //   int ham = widget.getHam;
+  //   int spam = widget.getSpam;
+  //   return List.generate(2, (i) {
+  //     final isTouched = i == touchedIndex;
+  //     final fontSize = isTouched ? 25.0 : 16.0;
+  //     final radius = isTouched ? 60.0 : 50.0;
+  //     const shadows = [Shadow(color: Colors.black, blurRadius: 2)];
+  //     switch (i) {
+  //       case 0:
+  //         return PieChartSectionData(
+  //           color: AppColors.contentColorBlue,
+  //           value: ham/(ham+spam)*100,
+  //           title: '${ham/(ham+spam)*100}%',
+  //           radius: radius,
+  //           titleStyle: TextStyle(
+  //             fontSize: fontSize,
+  //             fontWeight: FontWeight.bold,
+  //             color: AppColors.mainTextColor1,
+  //             shadows: shadows,
+  //           ),
+  //         );
+  //       case 1:
+  //         return PieChartSectionData(
+  //           color: AppColors.contentColorRed,
+  //           value: spam/(ham+spam)*100,
+  //           title: '${spam/(ham+spam)*100}%',
+  //           radius: radius,
+  //           titleStyle: TextStyle(
+  //             fontSize: fontSize,
+  //             fontWeight: FontWeight.bold,
+  //             color: AppColors.mainTextColor1,
+  //             shadows: shadows,
+  //           ),
+  //         );
+  //       default:
+  //         throw Error();
+  //     }
+  //   });
+  // }
 }
