@@ -1,131 +1,32 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:smigoal/models/message_entity.dart';
 
-import '../models/message_entity.dart';
+import '../models/sms_message.dart';
 import 'list/statistic_list_item.dart';
 
 class StatisticPage extends StatefulWidget {
-  const StatisticPage({super.key});
+  const StatisticPage({super.key, required this.messages});
+
+  final List<MessageEntity> messages;
 
   @override
   State<StatisticPage> createState() => _StatisticPageState();
 }
 
 class _StatisticPageState extends State<StatisticPage> {
-  List<MessageEntity> messages = [
-    MessageEntity(
-        sender: 'a',
-        message: 'b'*10000,
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        thumbnail: "",
-        isSmishing: false,
-        containsUrl: true,
-        id: 1,
-        url: ''),
-    MessageEntity(
-        sender: 'b',
-        message: 'c',
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        thumbnail: "",
-        isSmishing: true,
-        containsUrl: true,
-        id: 1,
-        url: ''),
-    MessageEntity(
-        sender: 'c',
-        message: 'd',
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        thumbnail: "",
-        isSmishing: false,
-        containsUrl: true,
-        id: 1,
-        url: ''),
-    MessageEntity(
-        sender: 'd',
-        message: 'e',
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        thumbnail: "",
-        isSmishing: false,
-        containsUrl: true,
-        id: 1,
-        url: ''),
-    MessageEntity(
-        sender: 'e',
-        message: 'f',
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        thumbnail: "",
-        isSmishing: false,
-        containsUrl: true,
-        id: 1,
-        url: ''),
-    MessageEntity(
-        sender: 'f',
-        message: 'g',
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        thumbnail: "",
-        isSmishing: true,
-        containsUrl: true,
-        id: 1,
-        url: ''),
-    MessageEntity(
-        sender: 'g',
-        message: 'h',
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        thumbnail: "",
-        isSmishing: false,
-        containsUrl: true,
-        id: 1,
-        url: ''),
-    MessageEntity(
-        sender: 'h',
-        message: 'i',
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        thumbnail: "",
-        isSmishing: false,
-        containsUrl: true,
-        id: 1,
-        url: ''),
-    MessageEntity(
-        sender: 'i',
-        message: 'j',
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        thumbnail: "",
-        isSmishing: false,
-        containsUrl: true,
-        id: 1,
-        url: ''),
-    MessageEntity(
-        sender: 'j',
-        message: 'k',
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        thumbnail: "",
-        isSmishing: true,
-        containsUrl: true,
-        id: 1,
-        url: ''),
-    MessageEntity(
-        sender: 'k',
-        message: 'l',
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        thumbnail: "",
-        isSmishing: false,
-        containsUrl: true,
-        id: 1,
-        url: ''),
-    MessageEntity(
-        sender: 'k',
-        message: 'm',
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        thumbnail: "",
-        isSmishing: false,
-        containsUrl: true,
-        id: 1,
-        url: ''),
-  ];
+  List<SMSMessage> messagesToShow = List.empty();
 
-  void _getMessages() {
-    // get Message from DB
+  @override
+  void initState() {
+    messagesToShow = widget.messages
+        .map((e) => SMSMessage(
+        sender: e.sender,
+        message: e.message,
+        timestamp: DateTime.fromMillisecondsSinceEpoch(e.timestamp),
+        isSmishing: e.isSmishing))
+        .toList();
   }
 
   @override
@@ -155,9 +56,9 @@ class _StatisticPageState extends State<StatisticPage> {
           Expanded(
             flex: 3,
             child: ListView.builder(
-              itemCount: messages.length,
+              itemCount: messagesToShow.length,
               itemBuilder: (context, index) {
-                final message = messages[index];
+                final message = messagesToShow[index];
                 return StatisticListItem(message: message);
               },
             ),

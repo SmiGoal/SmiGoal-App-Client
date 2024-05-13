@@ -58,13 +58,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ],
             actionsPadding: EdgeInsets.all(8),
           );
-        }).then((value) {
-      if (value) {
-        _settingsManager.deleteAllInDB();
-      } else {
-        dispose();
-      }
-    });
+        });
   }
 
   @override

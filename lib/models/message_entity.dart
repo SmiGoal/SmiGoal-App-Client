@@ -1,6 +1,6 @@
 class MessageEntity {
-  final int id;
-  final String url;
+  final int? id;
+  final List<String>? url;
   final String message;
   final String sender;
   final String thumbnail;
@@ -20,15 +20,23 @@ class MessageEntity {
   });
 
   factory MessageEntity.fromMap(Map<String, dynamic> map) {
+    List<String>? urls;
+    int? tid;
+    if (map['id'] != null) {
+      tid = map['id'];
+    }
+    if (map['url'] != null) {
+      urls = List<String>.from(map['url']);
+    }
     return MessageEntity(
-        id: map['id'] as int,
-        url: map['url'] as String,
-        message: map['message'] as String,
-        sender: map['sender'] as String,
-        thumbnail: map['thumbnail'] as String,
-        containsUrl: map['containsUrl'] as bool,
-        timestamp: map['timestamp'] as int,
-        isSmishing: map['isSmishing'] as bool
+      id: tid,
+      url: urls,
+      message: map['message'] as String,
+      sender: map['sender'] as String,
+      thumbnail: map['thumbnail'] as String,
+      containsUrl: map['containsUrl'] as bool,
+      timestamp: map['timestamp'] as int,
+      isSmishing: map['isSmishing'] as bool
     );
   }
 }

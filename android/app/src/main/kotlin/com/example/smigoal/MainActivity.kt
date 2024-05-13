@@ -15,10 +15,12 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat.registerReceiver
 import androidx.core.content.ContextCompat.startForegroundService
 import com.example.smigoal.db.MessageDB
+import com.example.smigoal.db.MessageEntity
 import com.example.smigoal.functions.RequestServer
 import com.example.smigoal.functions.SMSForegroundService
 import com.example.smigoal.functions.SMSReceiver
 import com.example.smigoal.functions.SettingsManager
+import com.example.smigoal.models.Message
 import com.example.smigoal.models.SMSServiceData
 import com.example.smigoal.models.SMSServiceData.SETTINGS_CHANNEL
 import com.example.smigoal.models.SMSServiceData.channel
@@ -27,6 +29,7 @@ import com.example.smigoal.models.SMSServiceData.settings_channel
 import com.example.smigoal.models.SMSServiceData.smsReceiver
 import com.example.smigoal.models.SMSServiceData.stopSMSService
 import com.example.smigoal.models.extractUrls
+import com.google.gson.Gson
 import io.flutter.embedding.android.FlutterFragmentActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -80,8 +83,14 @@ class MainActivity : FlutterFragmentActivity() {
                     val enabled = call.argument<Boolean>("enabled") ?: false
                     setForegroundServiceEnabled(enabled)
                     when (enabled) {
-                        true -> startSMSForegroundService()
-                        false -> stopSMSService(this)
+                        true -> {
+                            registerSMSReceiver()
+                            startSMSForegroundService()
+                        }
+                        false -> {
+                            unregisterReceiver(smsReceiver)
+                            stopSMSService(this)
+                        }
                     }
                     result.success(null)
                 }
@@ -93,12 +102,14 @@ class MainActivity : FlutterFragmentActivity() {
                         db.messageDao().deleteAllMessages()
                         withContext(Dispatchers.Main) {
                             result.success(null)
+                            val gson = Gson()
+                            val jsonMessage = gson.toJson(emptyList<MessageEntity>())
+                            channel.invokeMethod("showDb", mapOf(
+                                "dbDatas" to jsonMessage,
+                                "ham" to 0,
+                                "spam" to 0,
+                            ))
                         }
-                        channel.invokeMethod("showDB", mapOf(
-                            "dbDatas" to emptyList<Map<*, *>>(),
-                            "ham" to 0,
-                            "spam" to 0,
-                        ))
                         Log.i("test", db.messageDao().getMessage().toString())
                     }
                 }
@@ -170,16 +181,24 @@ class MainActivity : FlutterFragmentActivity() {
         dbScope.launch {
             val entity = db.messageDao().getCurrentMessage()
             val entities = db.messageDao().getMessage()
+            val gson = Gson()
             Log.i("test", "last Message : ${entity.toString()}")
             withContext(Dispatchers.Main) {
                 if(entity != null) {
+                    Log.i("test", "send Entity")
+                    val messageJson = gson.toJson(entity)
                     channel.invokeMethod(
-                        "onReceivedSMS", mapOf(
-                            "message" to entity.message,
-                            "sender" to entity.sender,
-                            "result" to if (entity.isSmishing) "spam" else "ham",
-                            "timestamp" to entity.timestamp
-                        )
+                        "onReceivedSMS", messageJson
+//                        mapOf(
+////                            "id" to entity.id,
+//                            "url" to entity.url,
+//                            "message" to entity.message,
+//                            "sender" to entity.sender,
+//                            "thumbnail" to entity.thumbnail,
+//                            "containsUrl" to entity.containsUrl,
+//                            "timestamp" to entity.timestamp,
+//                            "isSmishing" to entity.isSmishing
+//                        )
                     )
                 }
                 if(entities != null) {
@@ -189,17 +208,19 @@ class MainActivity : FlutterFragmentActivity() {
                         if(data.isSmishing) spam++ else ham++
                     }
                     Log.i("test", entities.size.toString())
-                    val dbDatas = entities.map { data ->
-                        mapOf(
-                            "id" to data.id,
-                            "url" to data.url,
-                            "message" to data.message,
-                            "sender" to data.sender,
-                            "containsUrl" to data.containsUrl,
-                            "timestamp" to data.timestamp,
-                            "isSmishing" to data.isSmishing
-                        )
-                    }
+                    val dbDatas = gson.toJson(entities)
+//                        entities.map { data ->
+//                        mapOf(
+////                            "id" to data.id,
+//                            "url" to data.url,
+//                            "message" to data.message,
+//                            "sender" to data.sender,
+//                            "thumbnail" to data.thumbnail,
+//                            "containsUrl" to data.containsUrl,
+//                            "timestamp" to data.timestamp,
+//                            "isSmishing" to data.isSmishing
+//                        )
+//                    }
 
                     channel.invokeMethod(
                         "showDb", mapOf(

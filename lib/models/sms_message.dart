@@ -1,12 +1,12 @@
 class SMSMessage {
   final String sender;
-  final String content;
+  final String message;
   final DateTime timestamp;
   final bool isSmishing;
 
   SMSMessage({
     required this.sender,
-    required this.content,
+    required this.message,
     required this.timestamp,
     required this.isSmishing,
   });

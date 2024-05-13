@@ -10,7 +10,7 @@ data class MessageEntity(
     val url: List<String>?,
     val message: String,
     val sender: String,
-    val thumbnail: String,
+    var thumbnail: String,
     val containsUrl: Boolean,
     val timestamp: Long,
     var isSmishing: Boolean
@@ -18,7 +18,11 @@ data class MessageEntity(
     constructor(url: List<String>?, message: String, sender: String, thumbnail: String, containsUrl: Boolean, timestamp: Long, isSmishing: Boolean)
             : this(null, url, message, sender, thumbnail, containsUrl, timestamp, isSmishing)
 
-    fun setIsSmishing(isSmishing: Boolean) {
-        this.isSmishing = isSmishing
-    }
+//    fun setIsSmishing(isSmishing: Boolean) {
+//        this.isSmishing = isSmishing
+//    }
+//
+//    fun setThumbnail(thumbnail: String) {
+//        this.thumbnail = thumbnail
+//    }
 }

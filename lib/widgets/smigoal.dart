@@ -1,8 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../models/sms_message.dart';
+import '../widgets/list/statistic_list_item.dart';
 import '../functions/result_handler.dart';
+import '../models/message_entity.dart';
 import '../widgets/statistic_page.dart';
 import '../widgets/analysis_manual_page.dart';
 import '../resources/app_resources.dart';
@@ -18,11 +20,12 @@ class SmiGoal extends StatefulWidget {
 }
 
 class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
-  String message = "SmiGoal....";
-  String sender = "KU";
-  String result = "Unknown";
+  String message = "";
+  String sender = "";
+  bool result = false;
+  List<MessageEntity> messages = List.empty(growable: true);
   int ham = 0, spam = 0;
-  DateTime timestamp = DateTime.now();
+  DateTime timestamp = DateTime(0);
   DateTime? lastPressed;
   CircularChart? chart;
 
@@ -41,21 +44,29 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
   }
 
   // Future<String> get message async {
-  void _getMessage(
-      String message, String sender, String result, int timestamp) {
+  void _getMessage(MessageEntity entity) {
     setState(() {
-      this.message = message;
-      this.sender = sender;
-      this.result = result;
-      this.timestamp = DateTime.fromMillisecondsSinceEpoch(timestamp);
+      // print(map);
+      // final entity = MessageEntity.fromMap(map);
+      messages.add(entity);
+      this.message = entity.message;
+      this.sender = entity.sender;
+      this.result = entity.isSmishing;
+      this.timestamp = DateTime.fromMillisecondsSinceEpoch(entity.timestamp);
+      if (result) {
+        spam++;
+      } else {
+        ham++;
+      }
     });
   }
 
-  void _getDbDatas(List dbDatas, int ham, int spam) {
+  void _getDbDatas(List<MessageEntity> dbDatas, int ham, int spam) {
     setState(() {
       print('getDB');
       this.ham = ham;
       this.spam = spam;
+      messages = dbDatas;
       chart = CircularChart(ham: ham, spam: spam);
     });
   }
@@ -122,13 +133,43 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
                 ),
               ],
             ),
+            SizedBox(
+              width: double.infinity,
+              height: height * 0.1,
+              child: Expanded(
+                child: Container(
+                  padding: edgeInset,
+                  child: ham + spam == 0
+                      ? Card(
+                          child: ListTile(
+                            title: Text(
+                              "최근 저장된 문자 메시지가 없습니다.",
+                              style: GoogleFonts.lato(
+                                  fontSize: 20, fontWeight: FontWeight.w700),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        )
+                      : StatisticListItem(
+                          message: SMSMessage(
+                            sender: sender,
+                            message: message,
+                            timestamp: timestamp,
+                            isSmishing: result,
+                          ),
+                        ),
+                ),
+              ),
+            ),
             Container(
               padding: edgeInset,
               child: GestureDetector(
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => StatisticPage()),
+                    MaterialPageRoute(builder: (context) {
+                      return StatisticPage(messages: messages.reversed.toList());
+                    }),
                   );
                 },
                 child: Card(
@@ -154,17 +195,17 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
                         width: double.infinity,
                         height: height * 0.33,
                         child: ham + spam > 0
-                          ? CircularChart(ham: ham, spam: spam)
-                          : Center(
-                              child: Text(
-                                '현재 저장된 데이터가 없습니다.',
-                                style: GoogleFonts.nanumGothic(
-                                  color: Colors.black87,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w700,
+                            ? CircularChart(ham: ham, spam: spam)
+                            : Center(
+                                child: Text(
+                                  '현재 저장된 데이터가 없습니다.',
+                                  style: GoogleFonts.nanumGothic(
+                                    color: Colors.black87,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
                               ),
-                            ),
                       ),
                     ],
                   ),
@@ -235,28 +276,6 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
                     ),
                   )
                 ],
-              ),
-            ),
-            SizedBox(
-              width: double.infinity,
-              height: height * 0.1,
-              child: Expanded(
-                child: Container(
-                  padding: edgeInset,
-                  child: const Card(
-                    color: AppColors.contentColorBlue,
-                    elevation: 10,
-                    child: Center(
-                      child: Text(
-                        "광고 보고 오시죠",
-                        style: TextStyle(
-                          color: AppColors.contentColorWhite,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-                ),
               ),
             ),
             // Text(message),

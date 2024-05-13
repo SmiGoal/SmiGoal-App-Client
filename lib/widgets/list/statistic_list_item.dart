@@ -3,17 +3,17 @@ import 'dart:core';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../models/message_entity.dart';
+import '../../models/sms_message.dart';
 
 class StatisticListItem extends StatelessWidget {
   StatisticListItem({super.key, required this.message});
 
-  MessageEntity message;
+  SMSMessage message;
 
   List<String> titles = ['발신자', '수신 날짜', '메시지 내용'];
 
-  Dialog _showDialog(MessageEntity message) {
-    List contents = [message.sender, DateFormat('yyyy년 MM월 dd일').format(DateTime.fromMillisecondsSinceEpoch(message.timestamp)), message.message];
+  Dialog _showDialog(SMSMessage message) {
+    List contents = [message.sender, DateFormat('yyyy년 MM월 dd일').format(message.timestamp), message.message];
     return Dialog(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -84,7 +84,7 @@ class StatisticListItem extends StatelessWidget {
                   color: Colors.white),
             ),
             title: Text(message.isSmishing ? '스미싱 문자' : '안전한 문자'),
-            subtitle: Text('${message.sender} - ${DateFormat('yyyy년 MM월 dd일').format(DateTime.fromMillisecondsSinceEpoch(message.timestamp))}'),
+            subtitle: Text('${message.sender} - ${DateFormat('yyyy년 MM월 dd일').format(message.timestamp)}'),
           ),
         ),
       ),

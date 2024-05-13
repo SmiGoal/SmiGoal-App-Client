@@ -52,7 +52,7 @@ class DrawerPage extends StatelessWidget {
         children: [
           DrawerHeader(
             decoration: BoxDecoration(
-              image: DecorationImage(
+              image: const DecorationImage(
                   image: AssetImage(Assets.appIconPath)),
               color: AppColors.contentColorBlue,
               gradient: LinearGradient(colors: [
@@ -83,14 +83,6 @@ class DrawerPage extends StatelessWidget {
           //   },
           // ),
           ListTile(
-            leading: const Icon(Icons.account_circle),
-            title: const Text('개발자 정보'),
-            onTap: () {
-              Navigator.pop(context);
-              _showDeveloperInfoDialog(context);
-            },
-          ),
-          ListTile(
             leading: const Icon(Icons.settings),
             title: const Text('설정'),
             onTap: () {
@@ -100,6 +92,14 @@ class DrawerPage extends StatelessWidget {
                 MaterialPageRoute(
                     builder: (context) => SettingsPage()), // 설정 화면으로 이동합니다.
               );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.account_circle),
+            title: const Text('개발자 정보'),
+            onTap: () {
+              Navigator.pop(context);
+              _showDeveloperInfoDialog(context);
             },
           ),
         ],
