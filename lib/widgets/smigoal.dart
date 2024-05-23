@@ -133,34 +133,25 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
                 ),
               ],
             ),
-            SizedBox(
-              width: double.infinity,
-              height: height * 0.1,
-              child: Expanded(
-                child: Container(
-                  padding: edgeInset,
-                  child: ham + spam == 0
-                      ? Card(
-                          child: ListTile(
-                            title: Text(
-                              "최근 저장된 문자 메시지가 없습니다.",
-                              style: GoogleFonts.lato(
-                                  fontSize: 20, fontWeight: FontWeight.w700),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        )
-                      : StatisticListItem(
-                          message: SMSMessage(
-                            sender: sender,
-                            message: message,
-                            timestamp: timestamp,
-                            isSmishing: result,
-                          ),
-                        ),
-                ),
-              ),
-            ),
+            ham + spam == 0
+                ? Card(
+                    child: ListTile(
+                      title: Text(
+                        "최근 저장된 문자 메시지가 없습니다.",
+                        style: GoogleFonts.lato(
+                            fontSize: 20, fontWeight: FontWeight.w700),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  )
+                : StatisticListItem(
+                    message: SMSMessage(
+                      sender: sender,
+                      message: message,
+                      timestamp: timestamp,
+                      isSmishing: result,
+                    ),
+                  ),
             Container(
               padding: edgeInset,
               child: GestureDetector(
@@ -251,7 +242,7 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
                                     const AnalysisManualPage()),
                           );
                         },
-                        child: Card(
+                        child: const Card(
                           color: AppColors.contentColorWhite,
                           elevation: 10,
                           child: Padding(
@@ -262,11 +253,16 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
                                 Text(
                                   "메시지\n수동 분석",
                                   textAlign: TextAlign.center,
-                                  style: GoogleFonts.lato(
+                                  style: TextStyle(
+                                    fontFamily: Assets.nanumSquareNeo,
                                     fontSize: 30,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.contentColorBlack,
+                                    fontWeight: FontWeight.w700,
                                   ),
+                                  // style: GoogleFonts.lato(
+                                  //   fontSize: 30,
+                                  //   fontWeight: FontWeight.bold,
+                                  //   color: AppColors.contentColorBlack,
+                                  // ),
                                 ),
                               ],
                             ),

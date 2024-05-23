@@ -62,10 +62,10 @@ object RequestServer {
             getisThreatURL(urls)
         }
         var entity =
-            MessageEntity(urls.ifEmpty { null }, message, sender, "", containsUrl, timestamp, false)
+            MessageEntity(urls.ifEmpty { null }, fullMessage, sender, "", containsUrl, timestamp, false)
         CoroutineScope(Dispatchers.IO).launch {
             getServerRequestMessage(message, entity)
-            if (urls.isNotEmpty()) getServerRequestUrl(urls, entity)
+            if (containsUrl) getServerRequestUrl(urls, entity)
 
             withContext(Dispatchers.Main) {
                 SMSServiceData.setResponseFromServer(entity)
@@ -101,8 +101,8 @@ object RequestServer {
                 Log.i("test", body.toString())
                 val status: String = body["status"] as String
                 val code: Int = (body["code"] as Double).toInt()
-                val result: Map<*, *> = body["result"] as Map<*, *>
                 if (status == "success") {
+                    val result: Map<*, *> = body["result"] as Map<*, *>
                     val isSmishing: Boolean = (result["result"] as String) == "smishing"
                     entity.isSmishing = isSmishing
                 }
@@ -121,9 +121,9 @@ object RequestServer {
         if(body != null) {
             val status: String = body["status"] as String
             val code: Int = (body["code"] as Double).toInt()
-            val result: Map<*, *> = body["result"] as Map<*, *>
             Log.i("test", status)
             if (status == "success") {
+                val result: Map<*, *> = body["result"] as Map<*, *>
                 val isSmishing: Boolean = (result["result"] as String) == "smishing"
                 val thumbnail: String = body["thumbnail"] as String
                 if (thumbnail != "") entity.thumbnail = thumbnail

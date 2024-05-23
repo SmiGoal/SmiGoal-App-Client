@@ -29,4 +29,6 @@ class AppColors {
 
 class Assets {
   static const String appIconPath = 'assets/images/icon_smigoal_removed_bg.png';
+  static const String nanumSquare = 'NanumSquare';
+  static const String nanumSquareNeo = 'NanumSquareNeo';
 }

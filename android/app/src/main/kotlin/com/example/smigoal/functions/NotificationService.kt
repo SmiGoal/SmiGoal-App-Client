@@ -18,6 +18,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 //object NotificationService {
 //    fun sendNotification(context: Context, entity: MessageEntity) {
@@ -134,10 +137,13 @@ object NotificationService {
     }
 
     private fun buildNotification(context: Context, entity: MessageEntity, bitmap: Bitmap?, channelId: String): NotificationCompat.Builder {
+        val date = Date(entity.timestamp)
+        val format = SimpleDateFormat("yyyy년 MM월 dd일 HH시 mm분", Locale.KOREA)
+        val time = format.format(date)
         return NotificationCompat.Builder(context, channelId).apply {
             setSmallIcon(R.mipmap.icon_smigoal)
             setContentTitle(if(entity.isSmishing) "스미싱 의심 문자입니다!" else "안전한 문자 입니다!")
-            setContentText("From ${entity.sender}, ${entity.timestamp}: Message: ${entity.message}")
+            setContentText("발신자: ${entity.sender}\n수신 시각: ${time}\n메시지 내용: ${entity.message}")
             setPriority(NotificationCompat.PRIORITY_HIGH)
             setCategory(Notification.CATEGORY_SERVICE)
             bitmap?.let {
