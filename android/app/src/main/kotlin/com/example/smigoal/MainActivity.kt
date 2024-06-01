@@ -12,29 +12,30 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat.registerReceiver
-import androidx.core.content.ContextCompat.startForegroundService
+import androidx.room.Room
 import com.example.smigoal.db.MessageDB
 import com.example.smigoal.db.MessageEntity
 import com.example.smigoal.functions.RequestServer
 import com.example.smigoal.functions.SMSForegroundService
 import com.example.smigoal.functions.SMSReceiver
 import com.example.smigoal.functions.SettingsManager
-import com.example.smigoal.models.Message
 import com.example.smigoal.models.SMSServiceData
+import com.example.smigoal.models.SMSServiceData.DATA_CHANNEL
 import com.example.smigoal.models.SMSServiceData.SETTINGS_CHANNEL
 import com.example.smigoal.models.SMSServiceData.channel
+import com.example.smigoal.models.SMSServiceData.data_channel
 import com.example.smigoal.models.SMSServiceData.db
 import com.example.smigoal.models.SMSServiceData.settings_channel
 import com.example.smigoal.models.SMSServiceData.smsReceiver
 import com.example.smigoal.models.SMSServiceData.stopSMSService
-import com.example.smigoal.models.extractUrls
 import com.google.gson.Gson
 import io.flutter.embedding.android.FlutterFragmentActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import java.util.Calendar
 
 class MainActivity : FlutterFragmentActivity() {
     val dbScope = CoroutineScope(Dispatchers.IO)
@@ -129,6 +130,15 @@ class MainActivity : FlutterFragmentActivity() {
                 else -> result.notImplemented()
             }
         }
+
+        data_channel.setMethodCallHandler { call, result ->
+            if (call.method == "getSmishingData") {
+                val data = getSmishingData()
+                result.success(data)
+            } else {
+                result.notImplemented()
+            }
+        }
     }
 
     private fun setForegroundServiceEnabled(enabled: Boolean) {
@@ -154,10 +164,38 @@ class MainActivity : FlutterFragmentActivity() {
         Log.i("test", "init")
         channel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, SMSServiceData.CHANNEL)
         settings_channel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, SETTINGS_CHANNEL)
+        data_channel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, DATA_CHANNEL)
         smsReceiver = SMSReceiver(channel)
         db = MessageDB.getInstance(applicationContext)!!
         dbScope.launch {
             Log.i("test", "getFromDB : ${db.messageDao().getMessage()}")
+        }
+    }
+
+    private fun getSmishingData(): List<Map<String, Any?>> {
+        val messageDao = db.messageDao()
+
+        val calendar = Calendar.getInstance()
+        calendar.add(Calendar.MONTH, -3)
+        val threeMonthsAgoTimestamp = calendar.timeInMillis
+        lateinit var messages: List<MessageEntity>
+        // 비동기 처리 왜 안되는지 해결해야함
+        runBlocking {
+            dbScope.launch {
+                messageDao.getMessagesFromDate(threeMonthsAgoTimestamp)
+            }
+        }
+        return messages.map { message ->
+            mapOf(
+                "id" to message.id,
+                "url" to message.url,
+                "message" to message.message,
+                "sender" to message.sender,
+                "thumbnail" to message.thumbnail,
+                "containsUrl" to message.containsUrl,
+                "timestamp" to message.timestamp,
+                "isSmishing" to message.isSmishing
+            )
         }
     }
 

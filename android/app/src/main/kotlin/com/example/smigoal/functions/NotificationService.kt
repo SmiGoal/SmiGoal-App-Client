@@ -144,6 +144,8 @@ object NotificationService {
             setSmallIcon(R.mipmap.icon_smigoal)
             setContentTitle(if(entity.isSmishing) "스미싱 의심 문자입니다!" else "안전한 문자 입니다!")
             setContentText("발신자: ${entity.sender}\n수신 시각: ${time}\n메시지 내용: ${entity.message}")
+            setStyle(NotificationCompat.BigTextStyle()
+                .bigText("발신자: ${entity.sender}\n수신 시각: ${time}\n메시지 내용: ${entity.message}"))
             setPriority(NotificationCompat.PRIORITY_HIGH)
             setCategory(Notification.CATEGORY_SERVICE)
             bitmap?.let {

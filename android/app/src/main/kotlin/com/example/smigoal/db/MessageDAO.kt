@@ -13,6 +13,9 @@ interface MessageDAO {
     @Query("DELETE FROM MESSAGE_TABLE")
     fun deleteAllMessages()
 
+    @Query("SELECT * FROM MESSAGE_TABLE WHERE timestamp >= :startDate")
+    fun getMessagesFromDate(startDate: Long): List<MessageEntity>
+
     @Query("SELECT * FROM MESSAGE_TABLE ORDER BY id DESC LIMIT 1")
     fun getCurrentMessage(): MessageEntity?
 
