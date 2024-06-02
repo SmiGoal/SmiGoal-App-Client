@@ -133,7 +133,7 @@ class MainActivity : FlutterFragmentActivity() {
 
         data_channel.setMethodCallHandler { call, result ->
             if (call.method == "getSmishingData") {
-                val data = getSmishingData()
+                val data = runBlocking { getSmishingData() }
                 result.success(data)
             } else {
                 result.notImplemented()
@@ -172,31 +172,19 @@ class MainActivity : FlutterFragmentActivity() {
         }
     }
 
-    private fun getSmishingData(): List<Map<String, Any?>> {
+    private suspend fun getSmishingData(): String {
         val messageDao = db.messageDao()
 
         val calendar = Calendar.getInstance()
         calendar.add(Calendar.MONTH, -3)
         val threeMonthsAgoTimestamp = calendar.timeInMillis
-        lateinit var messages: List<MessageEntity>
-        // 비동기 처리 왜 안되는지 해결해야함
-        runBlocking {
-            dbScope.launch {
-                messageDao.getMessagesFromDate(threeMonthsAgoTimestamp)
-            }
+
+        val messages = withContext(Dispatchers.IO) {
+            messageDao.getMessagesFromDate(threeMonthsAgoTimestamp)
         }
-        return messages.map { message ->
-            mapOf(
-                "id" to message.id,
-                "url" to message.url,
-                "message" to message.message,
-                "sender" to message.sender,
-                "thumbnail" to message.thumbnail,
-                "containsUrl" to message.containsUrl,
-                "timestamp" to message.timestamp,
-                "isSmishing" to message.isSmishing
-            )
-        }
+
+        val gson = Gson()
+        return gson.toJson(messages)
     }
 
     private fun registerSMSReceiver() {
