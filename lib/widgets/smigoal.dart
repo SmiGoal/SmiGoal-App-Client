@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/sms_message.dart';
 import '../widgets/list/statistic_list_item.dart';
 import '../functions/result_handler.dart';
@@ -20,6 +21,7 @@ class SmiGoal extends StatefulWidget {
 }
 
 class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
+  final Uri _url = Uri.parse(Assets.reportSpamUrl);
   String message = "";
   String sender = "";
   bool result = false;
@@ -46,13 +48,14 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
   // Future<String> get message async {
   void _getMessage(MessageEntity entity) {
     setState(() {
+      print('dflkajdlkf');
       // print(map);
       // final entity = MessageEntity.fromMap(map);
       messages.add(entity);
-      this.message = entity.message;
-      this.sender = entity.sender;
-      this.result = entity.isSmishing;
-      this.timestamp = DateTime.fromMillisecondsSinceEpoch(entity.timestamp);
+      message = entity.message;
+      sender = entity.sender;
+      result = entity.isSmishing;
+      timestamp = DateTime.fromMillisecondsSinceEpoch(entity.timestamp);
       if (result) {
         spam++;
       } else {
@@ -67,6 +70,13 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
       this.ham = ham;
       this.spam = spam;
       messages = dbDatas;
+      if (dbDatas.isNotEmpty) {
+        MessageEntity entity = dbDatas.last;
+        message = entity.message;
+        sender = entity.sender;
+        result = entity.isSmishing;
+        timestamp = DateTime.fromMillisecondsSinceEpoch(entity.timestamp);
+      }
       chart = CircularChart(ham: ham, spam: spam);
     });
   }
@@ -92,6 +102,12 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
   Future<bool> didPopRoute() async {
     final result = await _onWillPop();
     return result;
+  }
+
+  Future<void> _launchUrl() async {
+    if (!await launchUrl(_url)) {
+      throw Exception('Could not launch $_url');
+    }
   }
 
   @override
@@ -159,7 +175,8 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) {
-                      return StatisticPage(messages: messages.reversed.toList());
+                      return StatisticPage(
+                          messages: messages.reversed.toList());
                     }),
                   );
                 },
@@ -170,11 +187,12 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
                     children: [
                       Container(
                         alignment: Alignment.centerLeft,
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(10, 10, 0, 0),
+                        child: const Padding(
+                          padding: EdgeInsets.fromLTRB(10, 10, 0, 0),
                           child: Text(
                             '메시지 통계',
-                            style: GoogleFonts.nanumGothic(
+                            style: TextStyle(
+                              fontFamily: Assets.nanumSquareNeo,
                               color: Colors.black87,
                               fontSize: 20,
                               fontWeight: FontWeight.w700,
@@ -182,15 +200,16 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
                           ),
                         ),
                       ),
-                      Container(
+                      SizedBox(
                         width: double.infinity,
                         height: height * 0.33,
                         child: ham + spam > 0
                             ? CircularChart(ham: ham, spam: spam)
-                            : Center(
+                            : const Center(
                                 child: Text(
                                   '현재 저장된 데이터가 없습니다.',
-                                  style: GoogleFonts.nanumGothic(
+                                  style: TextStyle(
+                                    fontFamily: Assets.nanumSquareNeo,
                                     color: Colors.black87,
                                     fontSize: 20,
                                     fontWeight: FontWeight.w700,
@@ -210,22 +229,38 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
                   Expanded(
                     child: Container(
                       padding: edgeInset,
-                      child: Card(
-                        color: AppColors.contentColorBlue,
-                        elevation: 10,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              "스미싱 피해 신고\n국번 없이 112",
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.lato(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.contentColorWhite,
+                      child: GestureDetector(
+                        onTap: () async {
+                          _launchUrl();
+                        },
+                        child: const Card(
+                          color: AppColors.contentColorBlue,
+                          elevation: 10,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "스미싱 피해 신고\n국번 없이 112\n",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontFamily: Assets.nanumSquareNeo,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.contentColorWhite,
+                                ),
                               ),
-                            ),
-                          ],
+                              Text(
+                                "클릭시\n스팸 신고 사이트로\n이동합니다.",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontFamily: Assets.nanumSquareNeo,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.contentColorWhite,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),

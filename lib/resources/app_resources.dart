@@ -31,4 +31,6 @@ class Assets {
   static const String appIconPath = 'assets/images/icon_smigoal_removed_bg.png';
   static const String nanumSquare = 'NanumSquare';
   static const String nanumSquareNeo = 'NanumSquareNeo';
+  static const String reportSpamUrl = 'https://spam.kisa.or.kr/spam/ss/ssSpamInfo.do?mi=1025';
+  static const TextStyle nanumSquareStyle = TextStyle(fontFamily: nanumSquareNeo);
 }

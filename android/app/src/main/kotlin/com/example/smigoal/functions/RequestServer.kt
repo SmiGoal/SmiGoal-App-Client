@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.example.smigoal.BuildConfig
 import com.example.smigoal.db.MessageEntity
+import com.example.smigoal.functions.RequestServer.apiService
 import com.example.smigoal.models.APIRequestData
 import com.example.smigoal.models.APIResponseDTO
 import com.example.smigoal.models.SMSServiceData
@@ -51,7 +52,7 @@ object RequestServer {
     val apiService = retrofitGoogle.create(APIService::class.java)
 
     fun extractMessage(context: Context, fullMessage: String, sender: String, timestamp: Long) {
-        var message = fullMessage.toString()
+        var message = fullMessage
         val urls = extractUrls(message)
         var containsUrl = urls.isNotEmpty()
         urls.forEach { url ->
@@ -78,16 +79,6 @@ object RequestServer {
                     val messageJson = gson.toJson(entity)
                     SMSServiceData.channel.invokeMethod(
                         "onReceivedSMS", messageJson
-//                        mapOf(
-////                            "id" to entity.id,
-//                            "url" to entity.url,
-//                            "message" to entity.message,
-//                            "sender" to entity.sender,
-//                            "thumbnail" to entity.thumbnail,
-//                            "containsUrl" to entity.containsUrl,
-//                            "timestamp" to entity.timestamp,
-//                            "isSmishing" to entity.isSmishing
-//                        )
                     )
                 }
             }
@@ -116,7 +107,12 @@ object RequestServer {
     }
 
     fun getServerRequestUrl(urls: List<String>, entity: MessageEntity) {
-        val requestUrlCall = smsService.requestUrlToServer(Urls(urls))
+        val urlData = urls.map{ url ->
+            if (!url.contains("(http|https)://")) "https://"+url
+            else url
+        }
+        Log.i("test", urlData.toString())
+        val requestUrlCall = smsService.requestUrlToServer(Urls(urlData))
         val body = requestUrlCall.execute().body()
         if(body != null) {
             val status: String = body["status"] as String
@@ -131,29 +127,6 @@ object RequestServer {
             }
             Log.i("test", body.toString())
         }
-//        smsService.requestUrlToServer(Urls(urls)).enqueue(object: Callback<Map<String, Any>> {
-//            override fun onResponse(
-//                call: Call<Map<String, Any>>,
-//                response: Response<Map<String, Any>>
-//            ) {
-//                val body = response.body()!!
-//                val status: String = body["status"] as String
-//                val code: Int = (body["code"] as Double).toInt()
-//                val result: Map<*, *> = body["result"] as Map<*, *>
-//                Log.i("test", status)
-//                if (status == "success") {
-//                    val isSmishing: Boolean = (result["result"] as String) == "smishing"
-//                    val thumbnail: String = body["thumbnail"] as String
-//                    if (thumbnail != "") entity.thumbnail = thumbnail
-//                    entity.isSmishing = isSmishing
-//                }
-//                Log.i("test", body.toString())
-//            }
-//
-//            override fun onFailure(call: Call<Map<String, Any>>, t: Throwable) {
-//                Log.e("test", t.toString())
-//            }
-//        })
     }
 
     fun getisThreatURL(urls: List<String>) {

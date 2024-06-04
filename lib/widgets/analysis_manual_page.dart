@@ -66,12 +66,12 @@ class _AnalysisManualPageState extends State<AnalysisManualPage> {
                       context: context,
                       builder: (context) {
                         return AlertDialog(
-                          title: Text("오류"),
+                          title: const Text("오류"),
                           content: Padding(
-                            padding: EdgeInsets.all(10),
+                            padding: const EdgeInsets.all(10),
                             child: Text(
                               "전화번호, 수신 날짜, 문자 메시지를 모두 채우고 분석을 요청해주세요.",
-                              style: GoogleFonts.lato(fontSize: 15),
+                              style: Assets.nanumSquareStyle.copyWith(fontSize: 15),
                             ),
                           ),
                         );

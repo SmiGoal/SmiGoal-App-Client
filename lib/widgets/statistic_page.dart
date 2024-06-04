@@ -5,6 +5,7 @@ import 'package:smigoal/models/message_entity.dart';
 import 'package:smigoal/widgets/chart/smishing_bar_chart.dart';
 
 import '../models/sms_message.dart';
+import '../resources/app_resources.dart';
 import 'list/statistic_list_item.dart';
 
 class StatisticPage extends StatefulWidget {
@@ -23,10 +24,10 @@ class _StatisticPageState extends State<StatisticPage> {
   void initState() {
     messagesToShow = widget.messages
         .map((e) => SMSMessage(
-        sender: e.sender,
-        message: e.message,
-        timestamp: DateTime.fromMillisecondsSinceEpoch(e.timestamp),
-        isSmishing: e.isSmishing))
+            sender: e.sender,
+            message: e.message,
+            timestamp: DateTime.fromMillisecondsSinceEpoch(e.timestamp),
+            isSmishing: e.isSmishing))
         .toList();
   }
 
@@ -38,12 +39,24 @@ class _StatisticPageState extends State<StatisticPage> {
       ),
       body: Column(
         children: [
-          Expanded(
-            flex: 2,
-            child: SmishingBarChart()
+          const Expanded(
+            flex: 0,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                "최근 3개월 내 스미싱 수",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: Assets.nanumSquareNeo,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 20,
+                ),
+              ),
+            ),
           ),
+          Expanded(flex: 10, child: SmishingBarChart()),
           Expanded(
-            flex: 3,
+            flex: 12,
             child: ListView.builder(
               itemCount: messagesToShow.length,
               itemBuilder: (context, index) {

@@ -215,16 +215,6 @@ class MainActivity : FlutterFragmentActivity() {
                     val messageJson = gson.toJson(entity)
                     channel.invokeMethod(
                         "onReceivedSMS", messageJson
-//                        mapOf(
-////                            "id" to entity.id,
-//                            "url" to entity.url,
-//                            "message" to entity.message,
-//                            "sender" to entity.sender,
-//                            "thumbnail" to entity.thumbnail,
-//                            "containsUrl" to entity.containsUrl,
-//                            "timestamp" to entity.timestamp,
-//                            "isSmishing" to entity.isSmishing
-//                        )
                     )
                 }
                 if(entities != null) {
@@ -235,18 +225,6 @@ class MainActivity : FlutterFragmentActivity() {
                     }
                     Log.i("test", entities.size.toString())
                     val dbDatas = gson.toJson(entities)
-//                        entities.map { data ->
-//                        mapOf(
-////                            "id" to data.id,
-//                            "url" to data.url,
-//                            "message" to data.message,
-//                            "sender" to data.sender,
-//                            "thumbnail" to data.thumbnail,
-//                            "containsUrl" to data.containsUrl,
-//                            "timestamp" to data.timestamp,
-//                            "isSmishing" to data.isSmishing
-//                        )
-//                    }
 
                     channel.invokeMethod(
                         "showDb", mapOf(

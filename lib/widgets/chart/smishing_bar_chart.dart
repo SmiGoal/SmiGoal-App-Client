@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -64,7 +65,7 @@ class _SmishingBarChartState extends State<SmishingBarChart> {
         return aDate.compareTo(bDate);
       });
 
-    final maxY = (smishingCountPerMonth.values.reduce((a, b) => a > b ? a : b) * 1.2).ceilToDouble();
+    final maxY = (smishingCountPerMonth.values.reduce((a, b) => a > b ? a : b) * 1.5).ceilToDouble();
 
     List<BarChartGroupData> barGroups = sortedKeys
         .map(
@@ -118,7 +119,7 @@ class _SmishingBarChartState extends State<SmishingBarChart> {
                   return Text(value.toInt().toString());
                 },
                 reservedSize: 28,
-                interval: 1,
+                interval: max(1,maxY~/10+1),
               ),
             ),
             rightTitles: AxisTitles(

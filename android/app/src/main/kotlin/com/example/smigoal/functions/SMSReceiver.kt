@@ -1,26 +1,11 @@
 package com.example.smigoal.functions
 
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
 import android.provider.Telephony
 import android.util.Log
-import androidx.core.app.NotificationCompat
-import com.example.smigoal.MainActivity
-import com.example.smigoal.R
-import com.example.smigoal.db.MessageEntity
-import com.example.smigoal.models.SMSServiceData
-import com.example.smigoal.models.extractUrls
 import io.flutter.plugin.common.MethodChannel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class SMSReceiver(private var channel: MethodChannel? = null) : BroadcastReceiver() {
     private val fullMessage = StringBuilder()
