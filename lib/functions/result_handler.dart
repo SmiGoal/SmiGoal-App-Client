@@ -25,20 +25,8 @@ class ResultHandler {
         print("onReceivedSMS : ${call.arguments}");
         final jsonString = call.arguments as String;
         final jsonMap = jsonDecode(jsonString) as Map<String, dynamic>;
-        // print(jsonMap.runtimeType);
         final ret = MessageEntity.fromMap(jsonMap);
         print(ret);
-        // final Map<String, dynamic> map = call.arguments as Map<String, dynamic>;
-        // final String message = call.arguments['message'];
-        // print(message);
-        // final String sender = call.arguments['sender'];
-        // print(sender);
-        // final String result = call.arguments['result'];
-        // print(result);
-        // final int timestamp = call.arguments['timestamp'];
-        // DateTime.fromMillisecondsSinceEpoch(call.arguments['timestamp']);
-        // 여기서 메시지 내용, 송신자, 시각 정보를 처리합니다.
-        // print("From ${sender}, ${timestamp}: Message: ${message}\n");
         onReceive(ret);
         break;
 
@@ -54,12 +42,11 @@ class ResultHandler {
         final List<dynamic> temp = jsonDecode(jsonString) as List<dynamic>;
         print('temp complete');
         final List<MessageEntity> dbDatas = temp.map((e) => MessageEntity.fromMap(e as Map<String, dynamic>)).toList();
-        // print('after Convert: $dbDatas');
 
-          // 나머지 처리...
-       final int ham = call.arguments['ham'];
-       final int spam = call.arguments['spam'];
-       showDb(dbDatas, ham, spam);
+        // 나머지 처리...
+        final int ham = call.arguments['ham'];
+        final int spam = call.arguments['spam'];
+        showDb(dbDatas, ham, spam);
         break;
 
       default:

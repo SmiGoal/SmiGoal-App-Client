@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/sms_message.dart';
@@ -30,6 +31,16 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
   DateTime timestamp = DateTime(0);
   DateTime? lastPressed;
   CircularChart? chart;
+  final SvgPicture button_analysis = SvgPicture.asset(
+    Assets.buttonAnalysisPage,
+    width: double.infinity,
+    height: double.infinity,
+  );
+  final SvgPicture button_report = SvgPicture.asset(
+    Assets.buttonReportPage,
+    width: double.infinity,
+    height: double.infinity,
+  );
 
   @override
   void initState() {
@@ -48,7 +59,6 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
   // Future<String> get message async {
   void _getMessage(MessageEntity entity) {
     setState(() {
-      print('dflkajdlkf');
       // print(map);
       // final entity = MessageEntity.fromMap(map);
       messages.add(entity);
@@ -169,8 +179,8 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
                     ),
                   ),
             Container(
-              padding: edgeInset,
-              child: GestureDetector(
+              padding: const EdgeInsets.all(8),
+              child: InkWell(
                 onTap: () {
                   Navigator.push(
                     context,
@@ -227,39 +237,18 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Expanded(
-                    child: Container(
-                      padding: edgeInset,
-                      child: GestureDetector(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: InkWell(
                         onTap: () async {
                           _launchUrl();
                         },
-                        child: const Card(
+                        child: Card(
                           color: AppColors.contentColorBlue,
                           elevation: 10,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                "스미싱 피해 신고\n국번 없이 112\n",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontFamily: Assets.nanumSquareNeo,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.contentColorWhite,
-                                ),
-                              ),
-                              Text(
-                                "클릭시\n스팸 신고 사이트로\n이동합니다.",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontFamily: Assets.nanumSquareNeo,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.contentColorWhite,
-                                ),
-                              ),
-                            ],
+                          child: Padding(
+                            padding: const EdgeInsets.all(15),
+                            child: button_report
                           ),
                         ),
                       ),
@@ -268,7 +257,7 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
                   Expanded(
                     child: Container(
                       padding: edgeInset,
-                      child: GestureDetector(
+                      child: InkWell(
                         onTap: () {
                           Navigator.push(
                             context,
@@ -277,31 +266,10 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
                                     const AnalysisManualPage()),
                           );
                         },
-                        child: const Card(
+                        child: Card(
                           color: AppColors.contentColorWhite,
                           elevation: 10,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  "메시지\n수동 분석",
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontFamily: Assets.nanumSquareNeo,
-                                    fontSize: 30,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                  // style: GoogleFonts.lato(
-                                  //   fontSize: 30,
-                                  //   fontWeight: FontWeight.bold,
-                                  //   color: AppColors.contentColorBlack,
-                                  // ),
-                                ),
-                              ],
-                            ),
-                          ),
+                          child: button_analysis,
                         ),
                       ),
                     ),

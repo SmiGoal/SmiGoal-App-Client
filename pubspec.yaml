@@ -41,6 +41,7 @@ dependencies:
   fl_chart: ^0.64.0
   intl: ^0.18.1
   url_launcher: ^6.3.0
+  flutter_svg: ^2.0.10+1
 
 dev_dependencies:
   flutter_test:
@@ -68,6 +69,8 @@ flutter:
   assets:
     - assets/images/icon_smigoal.png
     - assets/images/icon_smigoal_removed_bg.png
+    - assets/widgets/button_analysis.svg
+    - assets/widgets/button_report.svg
 #     - images/a_dot_burr.jpeg
 #     - images/a_dot_ham.jpeg
 

@@ -70,7 +70,7 @@ class StatisticListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 2, 8, 2),
-      child: GestureDetector(
+      child: InkWell(
         onTap: () {
           showDialog(
               context: context,
