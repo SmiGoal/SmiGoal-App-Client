@@ -23,14 +23,17 @@ class SmiGoal extends StatefulWidget {
 
 class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
   final Uri _url = Uri.parse(Assets.reportSpamUrl);
+  List<MessageEntity> messages = List.empty(growable: true);
   String message = "";
   String sender = "";
+  double hamPercentage = .0;
+  double spamPercentage = .0;
   bool result = false;
-  List<MessageEntity> messages = List.empty(growable: true);
   int ham = 0, spam = 0;
   DateTime timestamp = DateTime(0);
   DateTime? lastPressed;
   CircularChart? chart;
+
   final SvgPicture button_analysis = SvgPicture.asset(
     Assets.buttonAnalysisPage,
     width: double.infinity,
@@ -61,16 +64,20 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
     setState(() {
       // print(map);
       // final entity = MessageEntity.fromMap(map);
-      messages.add(entity);
-      message = entity.message;
-      sender = entity.sender;
-      result = entity.isSmishing;
-      timestamp = DateTime.fromMillisecondsSinceEpoch(entity.timestamp);
-      if (result) {
+      if (entity.isSmishing) {
         spam++;
       } else {
         ham++;
       }
+      messages.add(entity);
+      messages.sort((a, b) => a.timestamp - b.timestamp);
+      entity = messages.last;
+      message = entity.message;
+      sender = entity.sender;
+      hamPercentage = entity.hamPercentage;
+      spamPercentage = entity.spamPercentage;
+      result = entity.isSmishing;
+      timestamp = DateTime.fromMillisecondsSinceEpoch(entity.timestamp);
     });
   }
 
@@ -80,10 +87,13 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
       this.ham = ham;
       this.spam = spam;
       messages = dbDatas;
+      messages.sort((a, b) => a.timestamp - b.timestamp);
       if (dbDatas.isNotEmpty) {
-        MessageEntity entity = dbDatas.last;
+        MessageEntity entity = messages.last;
         message = entity.message;
         sender = entity.sender;
+        hamPercentage = entity.hamPercentage;
+        spamPercentage = entity.spamPercentage;
         result = entity.isSmishing;
         timestamp = DateTime.fromMillisecondsSinceEpoch(entity.timestamp);
       }
@@ -175,6 +185,8 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
                       sender: sender,
                       message: message,
                       timestamp: timestamp,
+                      hamPercentage: hamPercentage,
+                      spamPercentage: spamPercentage,
                       isSmishing: result,
                     ),
                   ),
@@ -256,7 +268,7 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
                   ),
                   Expanded(
                     child: Container(
-                      padding: edgeInset,
+                      padding: const EdgeInsets.all(8),
                       child: InkWell(
                         onTap: () {
                           Navigator.push(

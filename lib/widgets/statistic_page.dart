@@ -27,6 +27,8 @@ class _StatisticPageState extends State<StatisticPage> {
             sender: e.sender,
             message: e.message,
             timestamp: DateTime.fromMillisecondsSinceEpoch(e.timestamp),
+            hamPercentage: e.hamPercentage,
+            spamPercentage: e.spamPercentage,
             isSmishing: e.isSmishing))
         .toList();
   }

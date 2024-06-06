@@ -26,19 +26,13 @@ class ResultHandler {
         final jsonString = call.arguments as String;
         final jsonMap = jsonDecode(jsonString) as Map<String, dynamic>;
         final ret = MessageEntity.fromMap(jsonMap);
-        print(ret);
         onReceive(ret);
         break;
 
       case "showDb":
         print(call.arguments);
         print(call.arguments['dbDatas']);
-        // 안전한 타입 변환을 위해 is를 사용하여 타입 체크
-        //   (call.arguments['dbDatas'] as List).forEach((element) {print(element);});
         final jsonString = call.arguments['dbDatas'] as String;
-        print(jsonString);
-        print(jsonString.runtimeType);
-        print(jsonDecode(jsonString).runtimeType);
         final List<dynamic> temp = jsonDecode(jsonString) as List<dynamic>;
         print('temp complete');
         final List<MessageEntity> dbDatas = temp.map((e) => MessageEntity.fromMap(e as Map<String, dynamic>)).toList();

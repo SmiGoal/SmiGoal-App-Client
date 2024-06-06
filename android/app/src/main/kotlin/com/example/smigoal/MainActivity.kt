@@ -1,24 +1,25 @@
 package com.example.smigoal
 
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.provider.Settings
 import android.provider.Telephony
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
-import androidx.room.Room
 import com.example.smigoal.db.MessageDB
 import com.example.smigoal.db.MessageEntity
 import com.example.smigoal.functions.RequestServer
 import com.example.smigoal.functions.SMSForegroundService
 import com.example.smigoal.functions.SMSReceiver
-import com.example.smigoal.functions.SettingsManager
 import com.example.smigoal.models.SMSServiceData
 import com.example.smigoal.models.SMSServiceData.DATA_CHANNEL
 import com.example.smigoal.models.SMSServiceData.SETTINGS_CHANNEL
@@ -37,38 +38,84 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.util.Calendar
 
+private const val MY_PERMISSIONS_REQUEST_READ_CONTACTS = 1
+
 class MainActivity : FlutterFragmentActivity() {
     val dbScope = CoroutineScope(Dispatchers.IO)
-//    private val isServiceRunning = Observer<Boolean> { isRunning ->
-//        if (!isRunning) {
-//            Log.i("test", "service 상태 변화 감지")
-//            SMSServiceData.startSMSService(this@MainActivity)
-//            SMSServiceData.isServiceRunning.postValue(true)
-//            registerSMSReceiver()
-//            startSMSForegroundService()
-//        }
-//    }
+    private lateinit var flutterEngine: FlutterEngine
+    private var returningFromSettings = false
 
-    val permissions = arrayOf(
+    private val permissions = arrayOf(
         android.Manifest.permission.POST_NOTIFICATIONS,
         android.Manifest.permission.RECEIVE_SMS)
 
-    val multiplePermissionLauncher = (this as ComponentActivity).registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-        val resultPermission = it.all{ map ->
-            map.value
+    private val multiplePermissionLauncher =
+        (this as ComponentActivity).registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()){
+            Log.i("test", "multiplePermissionLauncher.launch")
+            val resultPermission = it.all{map ->
+                map.value
+            }
+            if(!resultPermission){
+                Toast.makeText(this, "All Permissions must be allowed!", Toast.LENGTH_SHORT).show()
+                permissionCheckAlertDialog()
+            }
+            else init()
         }
-        if(!resultPermission){
-            //finish()
-            Toast.makeText(this, "모든 권한 승인되어야 함", Toast.LENGTH_SHORT).show()
+
+    private fun checkPermissions() {
+        Log.i("test", "checkPermissions")
+        when {
+            (permissions.all { checkSelfPermission(it) == PackageManager.PERMISSION_GRANTED }) -> init()
+            (ActivityCompat.shouldShowRequestPermissionRationale (this, android.Manifest.permission.POST_NOTIFICATIONS)
+                    || ActivityCompat.shouldShowRequestPermissionRationale(this, android.Manifest.permission.READ_SMS)) -> permissionCheckAlertDialog()
+            else -> multiplePermissionLauncher.launch(permissions)
+
         }
     }
 
-    private lateinit var settingsManager: SettingsManager
+
+    fun permissionCheckAlertDialog(){
+        Log.i("test", "permissionCheckAlertDialog")
+        val builder = AlertDialog.Builder(this).setCancelable(false)
+        builder.setMessage("모든 권한이 수락되어야 합니다!").setTitle("앱 사용 권한").setPositiveButton("확인"){
+                _, _ ->
+            multiplePermissionLauncher.launch(permissions)
+        }.setNeutralButton("Go to Settings") { dlg, _ ->
+            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                data = Uri.fromParts("package", packageName, null)
+            }
+            startActivity(intent)
+            returningFromSettings = true
+            dlg.dismiss()
+        }
+        val dialog = builder.create()
+        dialog.show()
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+//        Log.i("test", "onRequestPermissionsResult")
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            MY_PERMISSIONS_REQUEST_READ_CONTACTS -> {
+                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    // 권한이 부여되었을 때의 로직
+                    Log.i("test", "Granted")
+//                    init()
+                } else {
+                    // 권한이 거부되었을 때의 로직
+                    Log.i("test", "Not Granted")
+                }
+                return
+            }
+            // 다른 'case' 라인을 여기에 추가할 수 있습니다.
+        }
+    }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        this.flutterEngine = flutterEngine
         checkPermissions()
-        init(flutterEngine)
+        init()
         initMethodChannels()
         if (isForegroundServiceEnabled()) {
             registerSMSReceiver()
@@ -151,16 +198,7 @@ class MainActivity : FlutterFragmentActivity() {
         return prefs.getBoolean("foreground_service", false)
     }
 
-    fun allPermissionGranted() = permissions.all{
-        ActivityCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
-    }
-
-    private fun checkPermissions() {
-        Log.i("test", "checkPermissions")
-        if(!allPermissionGranted()) multiplePermissionLauncher.launch(permissions)
-    }
-
-    private fun init(flutterEngine: FlutterEngine) {
+    private fun init() {
         Log.i("test", "init")
         channel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, SMSServiceData.CHANNEL)
         settings_channel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, SETTINGS_CHANNEL)
@@ -168,7 +206,7 @@ class MainActivity : FlutterFragmentActivity() {
         smsReceiver = SMSReceiver(channel)
         db = MessageDB.getInstance(applicationContext)!!
         dbScope.launch {
-            Log.i("test", "getFromDB : ${db.messageDao().getMessage()}")
+            Log.i("test", "getFromDB : ${db.messageDao().getMessage() ?: "없음"}")
         }
     }
 
@@ -204,6 +242,10 @@ class MainActivity : FlutterFragmentActivity() {
 
     override fun onResume() {
         super.onResume()
+        if (returningFromSettings) {
+            checkPermissions()
+        }
+        returningFromSettings = false
         dbScope.launch {
             val entity = db.messageDao().getCurrentMessage()
             val entities = db.messageDao().getMessage()

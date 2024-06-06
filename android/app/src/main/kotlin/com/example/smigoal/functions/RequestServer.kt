@@ -4,15 +4,12 @@ import android.content.Context
 import android.util.Log
 import com.example.smigoal.BuildConfig
 import com.example.smigoal.db.MessageEntity
-import com.example.smigoal.functions.RequestServer.apiService
 import com.example.smigoal.models.APIRequestData
-import com.example.smigoal.models.APIResponseDTO
 import com.example.smigoal.models.SMSServiceData
 import com.example.smigoal.models.extractUrls
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.invoke
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -55,15 +52,28 @@ object RequestServer {
         var message = fullMessage
         val urls = extractUrls(message)
         var containsUrl = urls.isNotEmpty()
+        var isThreatUrl = false
         urls.forEach { url ->
             message = message.replace(url, "")
         }
+        var entity =
+            MessageEntity(urls.ifEmpty { null }, fullMessage, sender, "", containsUrl, timestamp, .0, .0, false)
         if (containsUrl) {
             Log.i("test", "url: $urls")
-            getisThreatURL(urls)
+            isThreatUrl = getisThreatURL(urls)
         }
-        var entity =
-            MessageEntity(urls.ifEmpty { null }, fullMessage, sender, "", containsUrl, timestamp, false)
+        if (isThreatUrl) {
+            entity.isSmishing = true
+            NotificationService.sendNotification(context, entity)
+            Log.i("test", "result : $entity")
+            Log.i("test", "timestamp : ${entity.timestamp}")
+
+            val gson = Gson()
+            val messageJson = gson.toJson(entity)
+            SMSServiceData.channel.invokeMethod(
+                "onReceivedSMS", messageJson
+            )
+        }
         CoroutineScope(Dispatchers.IO).launch {
             getServerRequestMessage(message, entity)
             if (containsUrl) getServerRequestUrl(urls, entity)
@@ -95,6 +105,8 @@ object RequestServer {
                 if (status == "success") {
                     val result: Map<*, *> = body["result"] as Map<*, *>
                     val isSmishing: Boolean = (result["result"] as String) == "smishing"
+                    entity.hamPercentage = (result["ham_percentage"] as String).toDouble()
+                    entity.spamPercentage = (result["spam_percentage"] as String).toDouble()
                     entity.isSmishing = isSmishing
                 }
                 Log.i("test", entity.toString())
@@ -108,7 +120,7 @@ object RequestServer {
 
     fun getServerRequestUrl(urls: List<String>, entity: MessageEntity) {
         val urlData = urls.map{ url ->
-            if (!url.contains("(http|https)://")) "https://"+url
+            if (!url.contains("(http|https)://")) "http://"+url
             else url
         }
         Log.i("test", urlData.toString())
@@ -120,6 +132,8 @@ object RequestServer {
             Log.i("test", status)
             if (status == "success") {
                 val result: Map<*, *> = body["result"] as Map<*, *>
+                entity.hamPercentage = (result["ham_percantage"] as String).toDouble()
+                entity.spamPercentage = (result["spam_percentage"] as String).toDouble()
                 val isSmishing: Boolean = (result["result"] as String) == "smishing"
                 val thumbnail: String = body["thumbnail"] as String
                 if (thumbnail != "") entity.thumbnail = thumbnail
@@ -129,27 +143,16 @@ object RequestServer {
         }
     }
 
-    fun getisThreatURL(urls: List<String>) {
-        apiService.getisThreatURL(param = APIRequestData(
+    fun getisThreatURL(urls: List<String>): Boolean {
+        val requestThreatUrlCall = apiService.getisThreatURL(param = APIRequestData(
             APIRequestData.Client(),
             APIRequestData.ThreatInfo(
                 threatEntries = urls.map { url ->
-                        APIRequestData.ThreatInfo.ThreatEntry(url)
-                    }
+                    APIRequestData.ThreatInfo.ThreatEntry(url)
+                }
             )
-        )).enqueue(object: Callback<APIResponseDTO> {
-            override fun onResponse(
-                call: Call<APIResponseDTO>,
-                response: Response<APIResponseDTO>
-            ) {
-                val body = response.body()!!
-                Log.i("test", "URL Result : $body")
-                if(body.matches == null) return
-            }
-
-            override fun onFailure(call: Call<APIResponseDTO>, t: Throwable) {
-                Log.e("test", t.toString())
-            }
-        })
+        ))
+        val body = requestThreatUrlCall.execute().body()
+        return body != null
     }
 }

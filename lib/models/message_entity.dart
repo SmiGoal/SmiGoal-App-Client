@@ -6,6 +6,8 @@ class MessageEntity {
   final String thumbnail;
   final bool containsUrl;
   final int timestamp;
+  final double hamPercentage;
+  final double spamPercentage;
   final bool isSmishing;
 
   MessageEntity({
@@ -16,6 +18,8 @@ class MessageEntity {
     required this.thumbnail,
     required this.containsUrl,
     required this.timestamp,
+    required this.hamPercentage,
+    required this.spamPercentage,
     required this.isSmishing
   });
 
@@ -36,6 +40,8 @@ class MessageEntity {
       thumbnail: map['thumbnail'] as String,
       containsUrl: map['containsUrl'] as bool,
       timestamp: map['timestamp'] as int,
+      hamPercentage: map['hamPercentage'] as double,
+      spamPercentage: map['spamPercentage'] as double,
       isSmishing: map['isSmishing'] as bool
     );
   }

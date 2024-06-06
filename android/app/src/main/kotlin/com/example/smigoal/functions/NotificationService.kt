@@ -23,6 +23,8 @@ import java.util.Date
 import java.util.Locale
 
 object NotificationService {
+    val title = listOf("스미싱 고위험 문자입니다!", "스미싱 의심 문자입니다!", "안전한 문자입니다!")
+
     fun sendNotification(context: Context, entity: MessageEntity) {
         val notificationChannelId = "SmiGoal SMS Received Channel ID"
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -68,9 +70,14 @@ object NotificationService {
         val date = Date(entity.timestamp)
         val format = SimpleDateFormat("yyyy년 MM월 dd일 HH시 mm분", Locale.KOREA)
         val time = format.format(date)
+        val idx = when {
+            entity.isSmishing -> 0
+            entity.spamPercentage >= 50 -> 1
+            else -> 2
+        }
         return NotificationCompat.Builder(context, channelId).apply {
             setSmallIcon(R.mipmap.icon_smigoal)
-            setContentTitle(if(entity.isSmishing) "스미싱 의심 문자입니다!" else "안전한 문자 입니다!")
+            setContentTitle(title[idx])
             setContentText("발신자: ${entity.sender}\n수신 시각: ${time}\n메시지 내용: ${entity.message}")
             setStyle(NotificationCompat.BigTextStyle()
                 .bigText("발신자: ${entity.sender}\n수신 시각: ${time}\n메시지 내용: ${entity.message}"))
