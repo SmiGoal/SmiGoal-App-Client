@@ -6,6 +6,7 @@ import com.example.smigoal.BuildConfig
 import com.example.smigoal.db.MessageEntity
 import com.example.smigoal.models.APIRequestData
 import com.example.smigoal.models.SMSServiceData
+import com.example.smigoal.models.SMSServiceData.entityType
 import com.example.smigoal.models.extractUrls
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
@@ -67,7 +68,7 @@ object RequestServer {
             Log.i("test", "timestamp : ${entity.timestamp}")
 
             val gson = Gson()
-            val messageJson = gson.toJson(entity)
+            val messageJson = gson.toJson(entity, entityType)
             CoroutineScope(Dispatchers.Main).launch {
                 SMSServiceData.channel.invokeMethod(
                     "onReceivedSMS", messageJson
@@ -96,7 +97,7 @@ object RequestServer {
             Log.i("test", "timestamp : ${entity.timestamp}")
 
             val gson = Gson()
-            val messageJson = gson.toJson(entity)
+            val messageJson = gson.toJson(entity, entityType)
             CoroutineScope(Dispatchers.Main).launch {
                 SMSServiceData.channel.invokeMethod(
                     "onReceivedSMS", messageJson

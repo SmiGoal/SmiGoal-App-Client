@@ -31,7 +31,7 @@ object NotificationService {
         createNotificationChannel(notificationManager, notificationChannelId, "SmiGoal SMS Receive Service")
 
         CoroutineScope(Dispatchers.Main).launch {
-            val bitmap = downloadImage(context, entity.thumbnail)
+            val bitmap = if (entity.thumbnail.isNotEmpty()) downloadImage(context, entity.thumbnail) else null
             val notification = buildNotification(context, entity, bitmap, notificationChannelId)
             val intent = Intent(context, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -85,7 +85,9 @@ object NotificationService {
             setCategory(Notification.CATEGORY_SERVICE)
             bitmap?.let {
                 setLargeIcon(it)
-                setStyle(NotificationCompat.BigPictureStyle().bigPicture(it))
+                setStyle(NotificationCompat.BigPictureStyle()
+                    .bigPicture(it)
+                    .setSummaryText("발신자: ${entity.sender}\n수신 시각: ${time}\n메시지 내용: ${entity.message}"))
             }
         }
     }

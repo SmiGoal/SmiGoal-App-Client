@@ -29,6 +29,8 @@ import com.example.smigoal.models.SMSServiceData.db
 import com.example.smigoal.models.SMSServiceData.settings_channel
 import com.example.smigoal.models.SMSServiceData.smsReceiver
 import com.example.smigoal.models.SMSServiceData.stopSMSService
+import com.example.smigoal.models.SMSServiceData.entityType
+import com.example.smigoal.models.SMSServiceData.listType
 import com.google.gson.Gson
 import io.flutter.embedding.android.FlutterFragmentActivity
 import kotlinx.coroutines.CoroutineScope
@@ -151,7 +153,7 @@ class MainActivity : FlutterFragmentActivity() {
                         withContext(Dispatchers.Main) {
                             result.success(null)
                             val gson = Gson()
-                            val jsonMessage = gson.toJson(emptyList<MessageEntity>())
+                            val jsonMessage = gson.toJson(emptyList<MessageEntity>(), listType)
                             channel.invokeMethod("showDb", mapOf(
                                 "dbDatas" to jsonMessage,
                                 "ham" to 0,
@@ -223,7 +225,7 @@ class MainActivity : FlutterFragmentActivity() {
         }
 
         val gson = Gson()
-        return gson.toJson(messages)
+        return gson.toJson(messages, listType)
     }
 
     private fun registerSMSReceiver() {
@@ -255,7 +257,7 @@ class MainActivity : FlutterFragmentActivity() {
             withContext(Dispatchers.Main) {
                 if(entity != null) {
                     Log.i("test", "send Entity")
-                    val messageJson = gson.toJson(entity)
+                    val messageJson = gson.toJson(entity, entityType)
                     channel.invokeMethod(
                         "onReceivedSMS", messageJson
                     )

@@ -8,6 +8,7 @@ import com.example.smigoal.db.MessageDB
 import com.example.smigoal.db.MessageEntity
 import com.example.smigoal.functions.SMSForegroundService
 import com.example.smigoal.functions.SMSReceiver
+import com.google.gson.reflect.TypeToken
 import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -16,6 +17,8 @@ import kotlinx.coroutines.launch
 object SMSServiceData {
     // 서비스의 실행 성탸룰 나타내는 LiveData이다. 기본값은 false
     val isServiceRunning = MutableLiveData<Boolean>(false)
+    val entityType = object : TypeToken<MessageEntity>() {}.type
+    val listType = object : TypeToken<List<MessageEntity>>() {}.type
 
     val CHANNEL = "com.example.smigoal/sms"
     val SETTINGS_CHANNEL = "com.example.smigoal/settings"

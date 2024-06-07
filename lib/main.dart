@@ -28,9 +28,6 @@ void main() async {
       theme: ThemeData().copyWith(
         colorScheme: kColorScheme,
       ),
-      darkTheme: ThemeData().copyWith(
-        colorScheme: kDarkColorScheme,
-      ),
       localizationsDelegates: [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
