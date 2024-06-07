@@ -94,7 +94,7 @@ class StatisticListItem extends StatelessWidget {
           child: ListTile(
             leading: CircleAvatar(
               backgroundColor: colors[idx],
-              child: Icon(idx ~/ 2 < 0 ? Icons.warning : Icons.thumb_up,
+              child: Icon(idx ~/ 2 == 0 ? Icons.warning : Icons.thumb_up,
                   color: Colors.white),
             ),
             title: Text(mTitle[idx]),

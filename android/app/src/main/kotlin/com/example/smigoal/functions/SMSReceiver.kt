@@ -6,6 +6,9 @@ import android.content.Intent
 import android.provider.Telephony
 import android.util.Log
 import io.flutter.plugin.common.MethodChannel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class SMSReceiver(private var channel: MethodChannel? = null) : BroadcastReceiver() {
     private val fullMessage = StringBuilder()
@@ -30,7 +33,7 @@ class SMSReceiver(private var channel: MethodChannel? = null) : BroadcastReceive
             Log.i("test", sender)
             Log.i("test", timestamp.toString())
 
-            RequestServer.extractMessage(context, fullMessage.toString(), sender, timestamp)
+            CoroutineScope(Dispatchers.IO).launch { RequestServer.extractMessage(context, fullMessage.toString(), sender, timestamp) }
         }
     }
 }

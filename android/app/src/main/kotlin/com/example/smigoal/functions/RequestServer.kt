@@ -10,13 +10,11 @@ import com.example.smigoal.models.extractUrls
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import retrofit2.Retrofit
+import retrofit2.await
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
@@ -48,7 +46,7 @@ object RequestServer {
     val smsService = retrofit.create(SMSService::class.java)
     val apiService = retrofitGoogle.create(APIService::class.java)
 
-    fun extractMessage(context: Context, fullMessage: String, sender: String, timestamp: Long) {
+    suspend fun extractMessage(context: Context, fullMessage: String, sender: String, timestamp: Long) {
         var message = fullMessage
         val urls = extractUrls(message)
         var containsUrl = urls.isNotEmpty()
@@ -70,89 +68,119 @@ object RequestServer {
 
             val gson = Gson()
             val messageJson = gson.toJson(entity)
-            SMSServiceData.channel.invokeMethod(
-                "onReceivedSMS", messageJson
-            )
-        }
-        CoroutineScope(Dispatchers.IO).launch {
-            getServerRequestMessage(message, entity)
-            if (containsUrl) getServerRequestUrl(urls, entity)
-
-            withContext(Dispatchers.Main) {
-                SMSServiceData.setResponseFromServer(entity)
-                CoroutineScope(Dispatchers.Main).launch {
-                    NotificationService.sendNotification(context, entity)
-                    Log.i("test", "result : $entity")
-                    Log.i("test", "timestamp : ${entity.timestamp}")
-
-                    val gson = Gson()
-                    val messageJson = gson.toJson(entity)
-                    SMSServiceData.channel.invokeMethod(
-                        "onReceivedSMS", messageJson
-                    )
-                }
+            CoroutineScope(Dispatchers.Main).launch {
+                SMSServiceData.channel.invokeMethod(
+                    "onReceivedSMS", messageJson
+                )
             }
+        }
+        try {
+            val serverRequestMessageDeferred = CoroutineScope(Dispatchers.IO).async {
+                getServerRequestMessage(message, entity)
+            }
+            serverRequestMessageDeferred.await()
+            if (containsUrl) {
+                val serverRequestUrlDeferred = CoroutineScope(Dispatchers.IO).async {
+                    getServerRequestUrl(urls, entity)
+                }
+                serverRequestUrlDeferred.await()
+            }
+
+            SMSServiceData.setResponseFromServer(entity)
+            NotificationService.sendNotification(context, entity)
+            Log.i("test", "result : $entity")
+            Log.i("test", "timestamp : ${entity.timestamp}")
+
+            val gson = Gson()
+            val messageJson = gson.toJson(entity)
+            CoroutineScope(Dispatchers.Main).launch {
+                SMSServiceData.channel.invokeMethod(
+                    "onReceivedSMS", messageJson
+                )
+            }
+        } catch (e: Exception) {
+            Log.e("test", "Error: ${e.message}")
         }
     }
 
-    fun getServerRequestMessage(message: String, entity: MessageEntity) {
-        smsService.requestMessageToServer(message).enqueue(object: Callback<Map<String, Any>> {
-            override fun onResponse(call: Call<Map<String, Any>>, response: Response<Map<String, Any>>) {
-                val body = response.body()!!
-                Log.i("test", body.toString())
-                val status: String = body["status"] as String
-                val code: Int = (body["code"] as Double).toInt()
-                if (status == "success") {
-                    val result: Map<*, *> = body["result"] as Map<*, *>
-                    val isSmishing: Boolean = (result["result"] as String) == "smishing"
-                    entity.hamPercentage = (result["ham_percentage"] as String).toDouble()
-                    entity.spamPercentage = (result["spam_percentage"] as String).toDouble()
-                    entity.isSmishing = isSmishing
-                }
-                Log.i("test", entity.toString())
-
-            }
-            override fun onFailure(call: Call<Map<String, Any>>, t: Throwable) {
-                Log.e("test", t.toString())
-            }
-        })
-    }
-
-    fun getServerRequestUrl(urls: List<String>, entity: MessageEntity) {
-        val urlData = urls.map{ url ->
-            if (!url.contains("(http|https)://")) "http://"+url
-            else url
-        }
-        Log.i("test", urlData.toString())
-        val requestUrlCall = smsService.requestUrlToServer(Urls(urlData))
-        val body = requestUrlCall.execute().body()
-        if(body != null) {
+    suspend fun getServerRequestMessage(message: String, entity: MessageEntity) {
+        try {
+            val body = smsService.requestMessageToServer(message).await()
+//            val body: Map<*, *> = response["result"] as Map<*, *>
+            Log.i("test", body.toString())
             val status: String = body["status"] as String
             val code: Int = (body["code"] as Double).toInt()
-            Log.i("test", status)
             if (status == "success") {
                 val result: Map<*, *> = body["result"] as Map<*, *>
-                entity.hamPercentage = (result["ham_percantage"] as String).toDouble()
-                entity.spamPercentage = (result["spam_percentage"] as String).toDouble()
                 val isSmishing: Boolean = (result["result"] as String) == "smishing"
-                val thumbnail: String = body["thumbnail"] as String
-                if (thumbnail != "") entity.thumbnail = thumbnail
+                entity.hamPercentage = result["ham_percentage"] as Double
+                entity.spamPercentage = result["spam_percentage"] as Double
                 entity.isSmishing = isSmishing
             }
-            Log.i("test", body.toString())
+            Log.i("test", entity.toString())
+        } catch (e: Exception) {
+            Log.e("test", "Error: ${e.message}")
         }
     }
 
-    fun getisThreatURL(urls: List<String>): Boolean {
-        val requestThreatUrlCall = apiService.getisThreatURL(param = APIRequestData(
-            APIRequestData.Client(),
-            APIRequestData.ThreatInfo(
-                threatEntries = urls.map { url ->
-                    APIRequestData.ThreatInfo.ThreatEntry(url)
+    suspend fun getServerRequestUrl(urls: List<String>, entity: MessageEntity) {
+        try {
+            val urlData = urls.map{ url ->
+                if (!url.contains("(http|https)://")) "http://"+url
+                else url
+            }
+            Log.i("test", urlData.toString())
+            val body = smsService.requestUrlToServer(Urls(urlData)).await()
+            Log.i("test", "Body: $body")
+//            val body: Map<*, *> = response["result"]
+            if(body != null) {
+                val status: String = body["status"] as String
+                val code: Int = (body["code"] as Double).toInt()
+                Log.i("test", status)
+                if (status == "success") {
+                    val result: Map<*, *> = body["result"] as Map<*, *>
+                    entity.hamPercentage = result["ham_percentage"] as Double
+                    entity.spamPercentage = result["spam_percentage"] as Double
+                    val isSmishing: Boolean = (result["result"] as String) == "smishing"
+                    val thumbnail: String = body["thumbnail"] as String
+                    if (thumbnail != "") entity.thumbnail = thumbnail
+                    entity.isSmishing = isSmishing
                 }
-            )
-        ))
-        val body = requestThreatUrlCall.execute().body()
-        return body != null
+                else {
+                    if (code == 422) {
+                        entity.apply {
+                            hamPercentage = 50.0
+                            spamPercentage = 50.0
+                            isSmishing = false
+                        }
+                    }
+                }
+                Log.i("test", body.toString())
+            }
+        } catch (e: Exception) {
+            Log.e("test", "Error: ${e.message}")
+        }
+    }
+
+    suspend fun getisThreatURL(urls: List<String>): Boolean {
+        try {
+            val requestThreatUrlDeferred = CoroutineScope(Dispatchers.IO).async {
+                apiService.getisThreatURL(param = APIRequestData(
+                    APIRequestData.Client(),
+                    APIRequestData.ThreatInfo(
+                        threatEntries = urls.map { url ->
+                            APIRequestData.ThreatInfo.ThreatEntry(url)
+                        }
+                    )
+                )).execute()
+            }
+            val response = requestThreatUrlDeferred.await()
+            val body = response.body()?.matches
+            Log.i("test", "API result: $body")
+            return body != null
+        } catch (e: Exception) {
+            Log.e("test", "Error: ${e.message}")
+            return false
+        }
     }
 }

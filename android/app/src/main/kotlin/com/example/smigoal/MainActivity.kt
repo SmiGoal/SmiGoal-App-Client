@@ -172,7 +172,7 @@ class MainActivity : FlutterFragmentActivity() {
                     val sender: String = call.argument("sender") ?: "null"
                     val timestamp: Long = call.argument("timestamp") ?: 0
                     val message: String = call.argument("message") ?: "null"
-                    RequestServer.extractMessage(this, message, sender, timestamp)
+                    CoroutineScope(Dispatchers.IO).launch { RequestServer.extractMessage(this@MainActivity, message, sender, timestamp) }
                 }
                 else -> result.notImplemented()
             }
