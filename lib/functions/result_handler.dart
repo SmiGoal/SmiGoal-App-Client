@@ -9,7 +9,7 @@ import '../resources/app_resources.dart';
 class ResultHandler {
   ResultHandler(this.onReceive, this.showDb);
   final Function(MessageEntity) onReceive;
-  final Function(List<MessageEntity>, int, int) showDb;
+  final Function(List<MessageEntity>, int, int, int) showDb;
   // final platform = MethodChannel('com.example.smigoal/sms');
 
   Future<void> init() async {
@@ -40,7 +40,8 @@ class ResultHandler {
         // 나머지 처리...
         final int ham = call.arguments['ham'];
         final int spam = call.arguments['spam'];
-        showDb(dbDatas, ham, spam);
+        final int doubt = call.arguments['doubt'];
+        showDb(dbDatas, ham, spam, doubt);
         break;
 
       default:

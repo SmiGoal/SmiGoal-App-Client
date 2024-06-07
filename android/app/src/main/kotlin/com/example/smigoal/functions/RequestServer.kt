@@ -24,11 +24,11 @@ object RequestServer {
 
     val okHttpClient = OkHttpClient.Builder()
         // 연결 타임아웃 시간 설정
-        .connectTimeout(180, TimeUnit.SECONDS) // 연결 타임아웃 시간을 30초로 설정
+        .connectTimeout(90, TimeUnit.SECONDS) // 연결 타임아웃 시간을 30초로 설정
         // 읽기 타임아웃 시간 설정
-        .readTimeout(180, TimeUnit.SECONDS) // 읽기 타임아웃 시간을 30초로 설정
+        .readTimeout(90, TimeUnit.SECONDS) // 읽기 타임아웃 시간을 30초로 설정
         // 쓰기 타임아웃 시간 설정
-        .writeTimeout(180, TimeUnit.SECONDS) // 쓰기 타임아웃 시간을 30초로 설정
+        .writeTimeout(90, TimeUnit.SECONDS) // 쓰기 타임아웃 시간을 30초로 설정
         .build()
 
     val retrofit = Retrofit.Builder()
@@ -80,6 +80,10 @@ object RequestServer {
             }
             serverRequestMessageDeferred.await()
             if (containsUrl) {
+                entity.apply {
+                    hamPercentage = 50.0
+                    spamPercentage = 50.0
+                }
                 val serverRequestUrlDeferred = CoroutineScope(Dispatchers.IO).async {
                     getServerRequestUrl(urls, entity)
                 }

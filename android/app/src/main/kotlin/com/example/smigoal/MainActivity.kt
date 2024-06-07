@@ -156,6 +156,7 @@ class MainActivity : FlutterFragmentActivity() {
                                 "dbDatas" to jsonMessage,
                                 "ham" to 0,
                                 "spam" to 0,
+                                "doubt" to 0,
                             ))
                         }
                         Log.i("test", db.messageDao().getMessage().toString())
@@ -262,8 +263,14 @@ class MainActivity : FlutterFragmentActivity() {
                 if(entities != null) {
                     var ham = 0
                     var spam = 0
+                    var doubt = 0
                     for (data in entities) {
-                        if(data.isSmishing) spam++ else ham++
+                        if (data.isSmishing) {
+                            spam++
+                        } else {
+                            if (data.spamPercentage >= 50) doubt++
+                            else ham++
+                        }
                     }
                     Log.i("test", entities.size.toString())
                     val dbDatas = gson.toJson(entities)
@@ -272,7 +279,8 @@ class MainActivity : FlutterFragmentActivity() {
                         "showDb", mapOf(
                             "dbDatas" to dbDatas,
                             "ham" to ham,
-                            "spam" to spam
+                            "spam" to spam,
+                            "doubt" to doubt
                         )
                     )
                 }

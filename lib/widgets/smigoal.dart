@@ -29,7 +29,7 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
   double hamPercentage = .0;
   double spamPercentage = .0;
   bool result = false;
-  int ham = 0, spam = 0;
+  int ham = 0, spam = 0, doubt = 0;
   DateTime timestamp = DateTime(0);
   DateTime? lastPressed;
   CircularChart? chart;
@@ -67,7 +67,11 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
       if (entity.isSmishing) {
         spam++;
       } else {
-        ham++;
+        if (entity.spamPercentage >= 50) {
+          doubt++;
+        } else {
+          ham++;
+        }
       }
       messages.add(entity);
       messages.sort((a, b) => a.timestamp - b.timestamp);
@@ -81,11 +85,12 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
     });
   }
 
-  void _getDbDatas(List<MessageEntity> dbDatas, int ham, int spam) {
+  void _getDbDatas(List<MessageEntity> dbDatas, int ham, int spam, int doubt) {
     setState(() {
       print('getDB');
       this.ham = ham;
       this.spam = spam;
+      this.doubt = doubt;
       messages = dbDatas;
       messages.sort((a, b) => a.timestamp - b.timestamp);
       if (dbDatas.isNotEmpty) {
@@ -97,7 +102,7 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
         result = entity.isSmishing;
         timestamp = DateTime.fromMillisecondsSinceEpoch(entity.timestamp);
       }
-      chart = CircularChart(ham: ham, spam: spam);
+      chart = CircularChart(ham: ham, spam: spam, doubt: doubt);
     });
   }
 
@@ -226,7 +231,7 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
                         width: double.infinity,
                         height: height * 0.33,
                         child: ham + spam > 0
-                            ? CircularChart(ham: ham, spam: spam)
+                            ? CircularChart(ham: ham, spam: spam, doubt: doubt)
                             : const Center(
                                 child: Text(
                                   '현재 저장된 데이터가 없습니다.',
