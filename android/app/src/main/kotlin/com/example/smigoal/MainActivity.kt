@@ -237,12 +237,6 @@ class MainActivity : FlutterFragmentActivity() {
         registerReceiver(smsReceiver, filter)
     }
 
-    // 필요에 따라 onDestroy에서 SMSReceiver 해제
-    override fun onDestroy() {
-//        unregisterReceiver(smsReceiver)
-        super.onDestroy()
-    }
-
     override fun onResume() {
         super.onResume()
         if (returningFromSettings) {

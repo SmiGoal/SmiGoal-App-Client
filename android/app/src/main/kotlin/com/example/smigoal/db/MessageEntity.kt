@@ -18,12 +18,4 @@ data class MessageEntity(
 ) {
     constructor(url: List<String>?, message: String, sender: String, thumbnail: String, containsUrl: Boolean, timestamp: Long, hamPercentage: Double, spamPercentage: Double, isSmishing: Boolean)
             : this(null, url, message, sender, thumbnail, containsUrl, timestamp, hamPercentage, spamPercentage, isSmishing)
-
-//    fun setIsSmishing(isSmishing: Boolean) {
-//        this.isSmishing = isSmishing
-//    }
-//
-//    fun setThumbnail(thumbnail: String) {
-//        this.thumbnail = thumbnail
-//    }
 }
