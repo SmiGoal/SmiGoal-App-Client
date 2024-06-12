@@ -1,6 +1,5 @@
 package com.example.smigoal.models
 
-
 import com.google.gson.annotations.SerializedName
 
 data class APIResponseDTO(

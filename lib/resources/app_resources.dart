@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+const platform = MethodChannel('com.example.smigoal/sms');
 
 class AppColors {
   static const Color primary = contentColorCyan;
@@ -14,7 +17,7 @@ class AppColors {
 
   static const Color contentColorBlack = Colors.black;
   static const Color contentColorWhite = Colors.white;
-  static const Color contentColorBlue = Color(0xFF2196F3);
+  static const Color contentColorBlue = Color(0xFF2894F8);
   static const Color contentColorYellow = Color(0xFFFFC300);
   static const Color contentColorOrange = Color(0xFFFF683B);
   static const Color contentColorGreen = Color(0xFF3BFF49);
@@ -26,4 +29,10 @@ class AppColors {
 
 class Assets {
   static const String appIconPath = 'assets/images/icon_smigoal_removed_bg.png';
+  static const String nanumSquare = 'NanumSquare';
+  static const String nanumSquareNeo = 'NanumSquareNeo';
+  static const String reportSpamUrl = 'https://spam.kisa.or.kr/spam/ss/ssSpamInfo.do?mi=1025';
+  static const String buttonAnalysisPage = 'assets/widgets/button_analysis.svg';
+  static const String buttonReportPage = 'assets/widgets/button_report.svg';
+  static const TextStyle nanumSquareStyle = TextStyle(fontFamily: nanumSquareNeo);
 }

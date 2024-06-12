@@ -1,7 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../models/sms_message.dart';
+import '../widgets/list/statistic_list_item.dart';
+import '../functions/result_handler.dart';
+import '../models/message_entity.dart';
 import '../widgets/statistic_page.dart';
 import '../widgets/analysis_manual_page.dart';
 import '../resources/app_resources.dart';
@@ -17,20 +22,35 @@ class SmiGoal extends StatefulWidget {
 }
 
 class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
-  String message = "SmiGoal....";
-  String sender = "KU";
-  String result = "Unknown";
-  int ham = 1, spam = 1;
-  DateTime timestamp = DateTime.now();
+  final Uri _url = Uri.parse(Assets.reportSpamUrl);
+  List<MessageEntity> messages = List.empty(growable: true);
+  String message = "";
+  String sender = "";
+  double hamPercentage = .0;
+  double spamPercentage = .0;
+  bool result = false;
+  int ham = 0, spam = 0, doubt = 0;
+  DateTime timestamp = DateTime(0);
   DateTime? lastPressed;
-  CircularChart? chart = null;
+  CircularChart? chart;
+
+  final SvgPicture button_analysis = SvgPicture.asset(
+    Assets.buttonAnalysisPage,
+    width: double.infinity,
+    height: double.infinity,
+  );
+  final SvgPicture button_report = SvgPicture.asset(
+    Assets.buttonReportPage,
+    width: double.infinity,
+    height: double.infinity,
+  );
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // final resultHandler = ResultHandler(_getMessage, _getDbDatas);
-    // resultHandler.init();
+    final resultHandler = ResultHandler(_getMessage, _getDbDatas);
+    resultHandler.init();
   }
 
   @override
@@ -40,32 +60,60 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
   }
 
   // Future<String> get message async {
-  void _getMessage(
-      String message, String sender, String result, int timestamp) {
+  void _getMessage(MessageEntity entity) {
     setState(() {
-      this.message = message;
-      this.sender = sender;
-      this.result = result;
-      this.timestamp = DateTime.fromMillisecondsSinceEpoch(timestamp);
+      // print(map);
+      // final entity = MessageEntity.fromMap(map);
+      if (entity.isSmishing) {
+        spam++;
+      } else {
+        if (entity.spamPercentage >= 50) {
+          doubt++;
+        } else {
+          ham++;
+        }
+      }
+      messages.add(entity);
+      messages.sort((a, b) => a.timestamp - b.timestamp);
+      entity = messages.last;
+      message = entity.message;
+      sender = entity.sender;
+      hamPercentage = entity.hamPercentage;
+      spamPercentage = entity.spamPercentage;
+      result = entity.isSmishing;
+      timestamp = DateTime.fromMillisecondsSinceEpoch(entity.timestamp);
     });
   }
 
-  void _getDbDatas(List dbDatas, int ham, int spam) {
+  void _getDbDatas(List<MessageEntity> dbDatas, int ham, int spam, int doubt) {
     setState(() {
       print('getDB');
       this.ham = ham;
       this.spam = spam;
-      chart = CircularChart(ham: ham, spam: spam);
+      this.doubt = doubt;
+      messages = dbDatas;
+      messages.sort((a, b) => a.timestamp - b.timestamp);
+      if (dbDatas.isNotEmpty) {
+        MessageEntity entity = messages.last;
+        message = entity.message;
+        sender = entity.sender;
+        hamPercentage = entity.hamPercentage;
+        spamPercentage = entity.spamPercentage;
+        result = entity.isSmishing;
+        timestamp = DateTime.fromMillisecondsSinceEpoch(entity.timestamp);
+      }
+      chart = CircularChart(ham: ham, spam: spam, doubt: doubt);
     });
   }
 
   Future<bool> _onWillPop() async {
     final now = DateTime.now();
 
-    if (lastPressed == null || now.difference(lastPressed!) > Duration(seconds: 2)) {
+    if (lastPressed == null ||
+        now.difference(lastPressed!) > const Duration(seconds: 2)) {
       lastPressed = now;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('한 번 더 누르면 종료됩니다.'),
           duration: Duration(seconds: 2),
         ),
@@ -79,6 +127,12 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
   Future<bool> didPopRoute() async {
     final result = await _onWillPop();
     return result;
+  }
+
+  Future<void> _launchUrl() async {
+    if (!await launchUrl(_url)) {
+      throw Exception('Could not launch $_url');
+    }
   }
 
   @override
@@ -120,13 +174,37 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
                 ),
               ],
             ),
+            ham + spam == 0
+                ? Card(
+                    child: ListTile(
+                      title: Text(
+                        "최근 저장된 문자 메시지가 없습니다.",
+                        style: GoogleFonts.lato(
+                            fontSize: 20, fontWeight: FontWeight.w700),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  )
+                : StatisticListItem(
+                    message: SMSMessage(
+                      sender: sender,
+                      message: message,
+                      timestamp: timestamp,
+                      hamPercentage: hamPercentage,
+                      spamPercentage: spamPercentage,
+                      isSmishing: result,
+                    ),
+                  ),
             Container(
-              padding: edgeInset,
-              child: GestureDetector(
+              padding: const EdgeInsets.all(8),
+              child: InkWell(
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => StatisticPage()),
+                    MaterialPageRoute(builder: (context) {
+                      return StatisticPage(
+                          messages: messages.reversed.toList());
+                    }),
                   );
                 },
                 child: Card(
@@ -136,11 +214,12 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
                     children: [
                       Container(
                         alignment: Alignment.centerLeft,
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(10, 10, 0, 0),
+                        child: const Padding(
+                          padding: EdgeInsets.fromLTRB(10, 10, 0, 0),
                           child: Text(
                             '메시지 통계',
-                            style: GoogleFonts.nanumGothic(
+                            style: TextStyle(
+                              fontFamily: Assets.nanumSquareNeo,
                               color: Colors.black87,
                               fontSize: 20,
                               fontWeight: FontWeight.w700,
@@ -148,7 +227,23 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
                           ),
                         ),
                       ),
-                      CircularChart(ham: ham, spam: spam),
+                      SizedBox(
+                        width: double.infinity,
+                        height: height * 0.33,
+                        child: ham + spam > 0
+                            ? CircularChart(ham: ham, spam: spam, doubt: doubt)
+                            : const Center(
+                                child: Text(
+                                  '현재 저장된 데이터가 없습니다.',
+                                  style: TextStyle(
+                                    fontFamily: Assets.nanumSquareNeo,
+                                    color: Colors.black87,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                      ),
                     ],
                   ),
                 ),
@@ -159,32 +254,27 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Expanded(
-                    child: Container(
-                      padding: edgeInset,
-                      child: Card(
-                        color: AppColors.contentColorBlue,
-                        elevation: 10,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              "스미싱 피해 신고\n국번 없이 112",
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.lato(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.contentColorWhite,
-                              ),
-                            ),
-                          ],
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: InkWell(
+                        onTap: () async {
+                          _launchUrl();
+                        },
+                        child: Card(
+                          color: AppColors.contentColorBlue,
+                          elevation: 10,
+                          child: Padding(
+                            padding: const EdgeInsets.all(15),
+                            child: button_report
+                          ),
                         ),
                       ),
                     ),
                   ),
                   Expanded(
                     child: Container(
-                      padding: edgeInset,
-                      child: GestureDetector(
+                      padding: const EdgeInsets.all(8),
+                      child: InkWell(
                         onTap: () {
                           Navigator.push(
                             context,
@@ -196,50 +286,12 @@ class _SmiGoalState extends State<SmiGoal> with WidgetsBindingObserver {
                         child: Card(
                           color: AppColors.contentColorWhite,
                           elevation: 10,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  "메시지\n수동 분석",
-                                  textAlign: TextAlign.center,
-                                  style: GoogleFonts.lato(
-                                    fontSize: 30,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.contentColorBlack,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                          child: button_analysis,
                         ),
                       ),
                     ),
                   )
                 ],
-              ),
-            ),
-            SizedBox(
-              width: double.infinity,
-              height: height * 0.1,
-              child: Expanded(
-                child: Container(
-                  padding: edgeInset,
-                  child: const Card(
-                    color: AppColors.contentColorBlue,
-                    elevation: 10,
-                    child: Center(
-                      child: Text(
-                        "광고 보고 오시죠",
-                        style: TextStyle(
-                          color: AppColors.contentColorWhite,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-                ),
               ),
             ),
             // Text(message),

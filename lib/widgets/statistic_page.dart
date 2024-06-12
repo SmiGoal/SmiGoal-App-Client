@@ -1,119 +1,35 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:smigoal/models/message_entity.dart';
+import 'package:smigoal/widgets/chart/smishing_bar_chart.dart';
 
-import '../models/message_entity.dart';
+import '../models/sms_message.dart';
+import '../resources/app_resources.dart';
 import 'list/statistic_list_item.dart';
 
 class StatisticPage extends StatefulWidget {
-  const StatisticPage({super.key});
+  const StatisticPage({super.key, required this.messages});
+
+  final List<MessageEntity> messages;
 
   @override
   State<StatisticPage> createState() => _StatisticPageState();
 }
 
 class _StatisticPageState extends State<StatisticPage> {
-  List<MessageEntity> messages = [
-    MessageEntity(
-        sender: 'a',
-        message: 'b'*10000,
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        isSmishing: false,
-        containsUrl: true,
-        id: 1,
-        url: ''),
-    MessageEntity(
-        sender: 'b',
-        message: 'c',
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        isSmishing: true,
-        containsUrl: true,
-        id: 1,
-        url: ''),
-    MessageEntity(
-        sender: 'c',
-        message: 'd',
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        isSmishing: false,
-        containsUrl: true,
-        id: 1,
-        url: ''),
-    MessageEntity(
-        sender: 'd',
-        message: 'e',
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        isSmishing: false,
-        containsUrl: true,
-        id: 1,
-        url: ''),
-    MessageEntity(
-        sender: 'e',
-        message: 'f',
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        isSmishing: false,
-        containsUrl: true,
-        id: 1,
-        url: ''),
-    MessageEntity(
-        sender: 'f',
-        message: 'g',
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        isSmishing: true,
-        containsUrl: true,
-        id: 1,
-        url: ''),
-    MessageEntity(
-        sender: 'g',
-        message: 'h',
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        isSmishing: false,
-        containsUrl: true,
-        id: 1,
-        url: ''),
-    MessageEntity(
-        sender: 'h',
-        message: 'i',
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        isSmishing: false,
-        containsUrl: true,
-        id: 1,
-        url: ''),
-    MessageEntity(
-        sender: 'i',
-        message: 'j',
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        isSmishing: false,
-        containsUrl: true,
-        id: 1,
-        url: ''),
-    MessageEntity(
-        sender: 'j',
-        message: 'k',
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        isSmishing: true,
-        containsUrl: true,
-        id: 1,
-        url: ''),
-    MessageEntity(
-        sender: 'k',
-        message: 'l',
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        isSmishing: false,
-        containsUrl: true,
-        id: 1,
-        url: ''),
-    MessageEntity(
-        sender: 'k',
-        message: 'm',
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        isSmishing: false,
-        containsUrl: true,
-        id: 1,
-        url: ''),
-  ];
+  List<SMSMessage> messagesToShow = List.empty();
 
-  void _getMessages() {
-    // get Message from DB
+  @override
+  void initState() {
+    messagesToShow = widget.messages
+        .map((e) => SMSMessage(
+            sender: e.sender,
+            message: e.message,
+            timestamp: DateTime.fromMillisecondsSinceEpoch(e.timestamp),
+            hamPercentage: e.hamPercentage,
+            spamPercentage: e.spamPercentage,
+            isSmishing: e.isSmishing))
+        .toList();
   }
 
   @override
@@ -124,28 +40,28 @@ class _StatisticPageState extends State<StatisticPage> {
       ),
       body: Column(
         children: [
-          Expanded(
-            flex: 2,
-            child: BarChart(BarChartData(
-              // Bar chart configurations
-              barGroups: [
-                BarChartGroupData(x: 0, barRods: [
-                  BarChartRodData(fromY: 5, color: Colors.red, toY: 10)
-                ]),
-                BarChartGroupData(x: 1, barRods: [
-                  BarChartRodData(fromY: 3, color: Colors.green, toY: 6)
-                ]),
-                // 추가 데이터...
-              ],
-              // 다른 차트 설정들...
-            )),
+          const Expanded(
+            flex: 0,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                "최근 3개월 내 스미싱 수",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: Assets.nanumSquareNeo,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 20,
+                ),
+              ),
+            ),
           ),
+          Expanded(flex: 10, child: SmishingBarChart()),
           Expanded(
-            flex: 3,
+            flex: 12,
             child: ListView.builder(
-              itemCount: messages.length,
+              itemCount: messagesToShow.length,
               itemBuilder: (context, index) {
-                final message = messages[index];
+                final message = messagesToShow[index];
                 return StatisticListItem(message: message);
               },
             ),

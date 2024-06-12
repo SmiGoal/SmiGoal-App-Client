@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../resources/app_resources.dart';
 
@@ -29,6 +30,75 @@ class _AnalysisManualPageState extends State<AnalysisManualPage> {
     });
   }
 
+  void _showDialog() {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text("메시지 수동 분석"),
+            content: const Text("정말 이대로 분석을 요청하시겠습니까?"),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text("취소"),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  final String sender = _titleController.text;
+                  final int? timestamp = _selectedDate?.millisecondsSinceEpoch;
+                  final String message = _messageController.text;
+                  if (sender.trim().isNotEmpty &&
+                      timestamp != null &&
+                      message.trim().isNotEmpty) {
+                    _requestServer(sender, timestamp, message);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('분석 요청을 보냈습니다.'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  } else {
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: const Text("오류"),
+                          content: Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: Text(
+                              "전화번호, 수신 날짜, 문자 메시지를 모두 채우고 분석을 요청해주세요.",
+                              style: Assets.nanumSquareStyle.copyWith(fontSize: 15),
+                            ),
+                          ),
+                        );
+                      });
+                  }
+                },
+                child: const Text(
+                  "확인",
+                  style: TextStyle(
+                    color: Colors.blue,
+                  ),
+                ),
+              ),
+            ],
+            actionsPadding: EdgeInsets.all(8),
+          );
+        });
+  }
+
+  Future<void> _requestServer(
+      String sender, int? timestamp, String message) async {
+    platform.invokeMethod('requestToServer', {
+      'sender': sender,
+      'timestamp': timestamp,
+      'message': message,
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,6 +123,9 @@ class _AnalysisManualPageState extends State<AnalysisManualPage> {
                           child: TextFormField(
                             controller: _titleController,
                             keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly // 숫자만 입력 허용
+                            ],
                             decoration: const InputDecoration(
                               border: InputBorder.none,
                               hintText: '전화번호를 입력하세요',
@@ -115,15 +188,15 @@ class _AnalysisManualPageState extends State<AnalysisManualPage> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
-                    AlertDialog(
-                      title: Text('dfadd'),
-                    ).build(context);
+                    _showDialog();
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.contentColorBlue,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
                   ),
-                  child: const Text('분석', style: TextStyle(color: AppColors.contentColorWhite)),
+                  child: const Text('분석',
+                      style: TextStyle(color: AppColors.contentColorWhite)),
                 ),
               ),
             ],
