@@ -1,9 +1,6 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import '../../resources/app_resources.dart';
 import '../../widgets/drawer/settings_page.dart';
-import '../../widgets/statistic_page.dart';
 
 class DrawerPage extends StatelessWidget {
   const DrawerPage({super.key});
@@ -63,26 +60,7 @@ class DrawerPage extends StatelessWidget {
               begin: Alignment.centerLeft),
             ),
             child: null,
-            // child: Text(
-            //   '설정',
-            //   style: TextStyle(
-            //     color: Colors.white,
-            //     fontSize: 24,
-            //   ),
-            // ),
           ),
-          // ListTile(
-          //   leading: const Icon(Icons.message),
-          //   title: const Text('메시지 통계'),
-          //   onTap: () {
-          //     // 여기에 메시지 항목이 클릭됐을 때의 동작을 추가하세요.
-          //     Navigator.pop(context);
-          //     Navigator.push(
-          //       context,
-          //       MaterialPageRoute(builder: (context) => const StatisticPage()),
-          //     );
-          //   },
-          // ),
           ListTile(
             leading: const Icon(Icons.settings),
             title: const Text('설정'),

@@ -10,10 +10,8 @@ class ResultHandler {
   ResultHandler(this.onReceive, this.showDb);
   final Function(MessageEntity) onReceive;
   final Function(List<MessageEntity>, int, int, int) showDb;
-  // final platform = MethodChannel('com.example.smigoal/sms');
 
   Future<void> init() async {
-    // await _flutterLocalNotificationsPlugin.initialize(initializationSettings);
     platform.setMethodCallHandler(_onMethodCall);
   }
 
